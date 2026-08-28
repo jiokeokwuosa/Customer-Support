@@ -31,7 +31,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 - [x] T001 Create monorepo directory structure per plan.md (`backend/`, `frontend/`, `backend/data/knowledge/`, `backend/data/fixtures/`)
 - [x] T002 Initialize backend Python project with `backend/pyproject.toml` (FastAPI, uvicorn, pydantic v2, langchain, langchain-openai, langchain-community, chromadb, structlog, httpx)
-- [ ] T003 [P] Initialize frontend Next.js App Router project in `frontend/` with TypeScript strict, Tailwind CSS, TanStack Query v5
+- [x] T003 [P] Initialize frontend Next.js App Router project in `frontend/` with TypeScript strict, Tailwind CSS, TanStack Query v5
 - [ ] T004 [P] Configure backend lint/format/typecheck in `backend/pyproject.toml` (Ruff, mypy)
 - [ ] T005 [P] Configure frontend lint/typecheck in `frontend/package.json` (ESLint, TypeScript check)
 - [ ] T006 [P] Add backend dev dependencies in `backend/pyproject.toml` (pytest, pytest-asyncio, httpx)
