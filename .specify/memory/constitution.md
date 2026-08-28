@@ -1,17 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: 2.1.0 → 2.2.0
-- Modified principles:
-  - I. Code Quality First (Next.js / TypeScript / Tailwind CSS /
-    TanStack Query frontend rules added)
-  - II. Testing Standards (QueryClient, query states, Next.js UI tests)
-  - III. User Experience Consistency (Tailwind design tokens; TanStack
-    Query loading/error/empty consistency)
-  - IV. Performance Requirements (RSC, query cache, Next.js load budgets)
-- Added sections: none (Technology Stack Constraints updated in place)
+- Version change: 2.2.0 → 2.3.0
+- Modified principles: none renamed
+- Added sections:
+  - VI. Learn-by-Building Communication (post-task plain-language explanations)
+- Modified sections:
+  - Quality Gates & Development Workflow (post-task explanation gate)
+  - Governance (compliance includes explanation requirement)
 - Removed sections: none
-- Technology Stack: frontend locked to Next.js + TypeScript + Tailwind
-  CSS + TanStack Query (replaces open-ended SPA framework choice)
 - Follow-up TODOs: none
 -->
 
@@ -226,6 +222,37 @@ Agent systems MUST be operable: traceable, bounded, and safe by default.
 Rationale: You cannot improve or safely operate what you cannot observe
 or bound; a single LangChain orchestration model keeps the stack simple.
 
+### VI. Learn-by-Building Communication (NON-NEGOTIABLE)
+
+This project is a learning portfolio. After each implemented task from
+`tasks.md`, the implementer MUST explain what changed in plain, friendly
+language—as if teaching a curious 10-year-old—without skipping the
+technical truth.
+
+- MUST deliver a post-task explanation immediately after completing each
+  task (or coherent task group when tasks are tightly coupled).
+- MUST use short sentences, everyday words, and simple analogies before
+  introducing technical terms; when a term is needed, define it in one
+  line.
+- MUST include at least one focused code snippet per major change area
+  (file, chain step, component, or test) showing the most important
+  lines—not entire files unless the task is very small.
+- MUST follow each snippet with a "what this does" and "why we added it"
+  explanation tied to the task goal.
+- MUST name which LangChain or full-stack idea the task demonstrates
+  (e.g., parallel chains, output parsing, retrieval, tools, streaming)
+  when applicable.
+- MUST NOT drown the reader in jargon, huge diffs, or copy-pasted boilerplate
+  with no explanation.
+- SHOULD use a consistent mini-structure per task:
+  1. **What we built** (one paragraph)
+  2. **How it works** (simple steps or analogy)
+  3. **Code peek** (small snippet + plain-language walkthrough)
+  4. **What you learned** (one or two bullets)
+
+Rationale: Code without explanation does not teach; simple explanations
+with real snippets turn each task into durable learning, not just output.
+
 ## Technology Stack Constraints
 
 - **Project shape**: One repository for the Customer Support product.
@@ -277,6 +304,10 @@ or bound; a single LangChain orchestration model keeps the stack simple.
    before/after examples in the PR and update frontend types, TanStack
    Query hooks, and tests in the same change set when the UI consumes
    them.
+8. After each completed task in `/speckit-implement`, a post-task
+   learn-by-building explanation MUST be provided per Principle VI before
+   moving to the next task; missing explanations are blocking for task
+   sign-off.
 
 ## Governance
 
@@ -292,9 +323,9 @@ work—backend and frontend—MUST comply.
 - **Compliance**: Reviews and Spec Kit workflows (`specify`, `plan`,
   `tasks`, `implement`, `analyze`) MUST check work against these
   principles. Unjustified complexity, LangGraph usage, split-repo
-  assumptions that contradict this constitution, or other violations are
-  blocking.
+  assumptions, missing post-task explanations (Principle VI), or other
+  violations are blocking.
 - **Exceptions**: Temporary waivers require documented rationale, expiry,
   and an owner; they MUST NOT be silent.
 
-**Version**: 2.2.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-27
+**Version**: 2.3.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-28

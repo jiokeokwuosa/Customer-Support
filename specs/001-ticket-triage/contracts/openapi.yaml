@@ -1,0 +1,389 @@
+openapi: 3.1.0
+info:
+  title: Customer Support Triage API
+  version: 1.0.0
+  description: |
+    Backend API for ticket triage, multi-turn chat, RAG citations, and mock lookups.
+    LangChain orchestration runs server-side only.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: health
+  - name: sessions
+  - name: messages
+  - name: prompts
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness check
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /ready:
+    get:
+      tags: [health]
+      summary: Readiness check (knowledge index loaded)
+      operationId: readinessCheck
+      responses:
+        "200":
+          description: Ready to accept traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+        "503":
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/sample-prompts:
+    get:
+      tags: [prompts]
+      summary: List demo sample prompts
+      operationId: listSamplePrompts
+      responses:
+        "200":
+          description: Sample prompts for UI chips
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [prompts]
+                properties:
+                  prompts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SamplePrompt"
+
+  /api/v1/sessions:
+    post:
+      tags: [sessions]
+      summary: Create a new conversation session
+      operationId: createSession
+      responses:
+        "201":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateSessionResponse"
+
+  /api/v1/sessions/{session_id}:
+    delete:
+      tags: [sessions]
+      summary: Clear session history (reset conversation)
+      operationId: resetSession
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "204":
+          description: Session cleared
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/sessions/{session_id}/messages:
+    post:
+      tags: [messages]
+      summary: Send a message and receive complete turn response
+      operationId: sendMessage
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: Turn processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TurnResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid message body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "504":
+          description: Processing timeout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/sessions/{session_id}/messages/stream:
+    post:
+      tags: [messages]
+      summary: Send a message and stream assistant response via SSE
+      operationId: sendMessageStream
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: |
+            Server-Sent Events stream. Event types:
+            - `triage` — TriageMetadata JSON (sent once after parallel analysis)
+            - `token` — partial assistant text chunk
+            - `citations` — Citation array (optional, before done)
+            - `lookup` — LookupResult JSON (optional)
+            - `done` — final TurnResponse JSON
+            - `error` — ErrorResponse JSON
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE formatted events
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  parameters:
+    SessionId:
+      name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    TopicCategory:
+      type: string
+      enum: [technical, billing, general]
+
+    SentimentLabel:
+      type: string
+      enum: [positive, neutral, negative, frustrated]
+
+    UrgencyLevel:
+      type: string
+      enum: [low, medium, high, critical]
+
+    TriageMetadata:
+      type: object
+      required: [topic, sentiment, urgency, rationale]
+      properties:
+        topic:
+          $ref: "#/components/schemas/TopicCategory"
+        sentiment:
+          $ref: "#/components/schemas/SentimentLabel"
+        urgency:
+          $ref: "#/components/schemas/UrgencyLevel"
+        rationale:
+          type: string
+          maxLength: 200
+
+    Citation:
+      type: object
+      required: [source_id, title, excerpt]
+      properties:
+        source_id:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+          maxLength: 300
+
+    LookupType:
+      type: string
+      enum: [order, account]
+
+    LookupResult:
+      type: object
+      required: [lookup_type, identifier, found, summary]
+      properties:
+        lookup_type:
+          $ref: "#/components/schemas/LookupType"
+        identifier:
+          type: string
+        found:
+          type: boolean
+        summary:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    SendMessageRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: User support message (non-empty after trim)
+
+    TurnResponse:
+      type: object
+      required:
+        - turn_id
+        - session_id
+        - status
+        - message
+        - triage
+        - citations
+        - error_code
+        - next_actions
+      properties:
+        turn_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [success, error]
+        message:
+          type: string
+          description: Final polished assistant response
+        triage:
+          $ref: "#/components/schemas/TriageMetadata"
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Citation"
+        lookup:
+          oneOf:
+            - $ref: "#/components/schemas/LookupResult"
+            - type: "null"
+        error_code:
+          oneOf:
+            - type: string
+            - type: "null"
+        next_actions:
+          type: array
+          items:
+            type: string
+
+    CreateSessionResponse:
+      type: object
+      required: [session_id, created_at]
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    SamplePrompt:
+      type: object
+      required: [id, label, message]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        message:
+          type: string
+        expected_topic:
+          $ref: "#/components/schemas/TopicCategory"
+
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+
+    ReadyResponse:
+      type: object
+      required: [status, knowledge_loaded]
+      properties:
+        status:
+          type: string
+          enum: [ready]
+        knowledge_loaded:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required: [status, message, error_code, next_actions]
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+        error_code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - SESSION_NOT_FOUND
+            - LLM_ERROR
+            - LLM_TIMEOUT
+            - SERVICE_UNAVAILABLE
+        next_actions:
+          type: array
+          items:
+            type: string
+
+  examples:
+    BillingComplaint:
+      summary: Billing triage turn
+      value:
+        turn_id: "550e8400-e29b-41d4-a716-446655440000"
+        session_id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        status: success
+        message: "I understand your frustration regarding the duplicate charge..."
+        triage:
+          topic: billing
+          sentiment: frustrated
+          urgency: high
+          rationale: "Duplicate charge complaint with urgent refund request"
+        citations: []
+        lookup: null
+        error_code: null
+        next_actions: []
