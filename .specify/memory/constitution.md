@@ -1,12 +1,12 @@
 <!--
 Sync Impact Report
-- Version change: 2.2.0 → 2.3.0
+- Version change: 2.3.0 → 2.4.0
 - Modified principles: none renamed
 - Added sections:
-  - VI. Learn-by-Building Communication (post-task plain-language explanations)
+  - Git & Branch Workflow (under Quality Gates & Development Workflow)
 - Modified sections:
-  - Quality Gates & Development Workflow (post-task explanation gate)
-  - Governance (compliance includes explanation requirement)
+  - Quality Gates & Development Workflow (task branches, develop base, post-task PR prompt)
+  - Governance (compliance includes git workflow requirements)
 - Removed sections: none
 - Follow-up TODOs: none
 -->
@@ -308,6 +308,27 @@ with real snippets turn each task into durable learning, not just output.
    learn-by-building explanation MUST be provided per Principle VI before
    moving to the next task; missing explanations are blocking for task
    sign-off.
+9. After each completed task, the implementer MUST ask the user whether
+   they want to open a pull request before starting the next task; MUST NOT
+   assume merge or PR creation without explicit user confirmation.
+
+### Git & Branch Workflow
+
+- **`develop` is the working branch**: All task work integrates through
+  `develop`. Pull requests MUST target the remote `develop` branch
+  (`origin/develop`), not `main`.
+- **One branch per task**: Each task from `tasks.md` MUST be implemented
+  on its own feature branch (e.g. `001-setup-backend`, `002-triage-chain`).
+  MUST NOT combine unrelated tasks on a single branch.
+- **Sync before branching**: Before creating a new task branch, MUST
+  checkout local `develop`, pull the latest from `origin/develop`, and
+  create the feature branch from that updated base.
+- **PR after task completion**: When the user confirms they want a PR,
+  push the task branch and open a pull request against `origin/develop`
+  with task id, summary, and test plan. If the user declines, remain on
+  the task branch or note the decision before proceeding.
+- **Branch naming**: Feature branches SHOULD use a task id prefix or
+  descriptive slug aligned with `tasks.md` for traceability.
 
 ## Governance
 
@@ -323,9 +344,10 @@ work—backend and frontend—MUST comply.
 - **Compliance**: Reviews and Spec Kit workflows (`specify`, `plan`,
   `tasks`, `implement`, `analyze`) MUST check work against these
   principles. Unjustified complexity, LangGraph usage, split-repo
-  assumptions, missing post-task explanations (Principle VI), or other
-  violations are blocking.
+  assumptions, missing post-task explanations (Principle VI), git workflow
+  violations (task branches, `develop` base, post-task PR prompt), or
+  other violations are blocking.
 - **Exceptions**: Temporary waivers require documented rationale, expiry,
   and an owner; they MUST NOT be silent.
 
-**Version**: 2.3.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-28
+**Version**: 2.4.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-28
