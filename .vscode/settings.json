@@ -7,5 +7,11 @@
   },
   "files.watcherExclude": {
     "**/.venv/**": true
-  }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.venvPath": "${workspaceFolder}/backend",
+  "python.analysis.venvPath": "${workspaceFolder}/backend",
+  "python.analysis.venv": ".venv",
+  "python.analysis.extraPaths": ["${workspaceFolder}/backend"],
+  "python.analysis.diagnosticMode": "workspace"
 }

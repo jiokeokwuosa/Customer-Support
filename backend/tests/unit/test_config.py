@@ -3,6 +3,11 @@ import pytest
 from app.config import Settings, get_settings
 
 
+def load_settings_from_env() -> Settings:
+    """Build settings from the current process environment."""
+    return Settings()  # type: ignore[call-arg]
+
+
 @pytest.fixture(autouse=True)
 def clear_settings_cache() -> None:
     get_settings.cache_clear()
@@ -13,7 +18,7 @@ def test_settings_defaults_with_required_api_key(
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
 
-    settings = Settings()
+    settings = load_settings_from_env()
 
     assert settings.openai_api_key.get_secret_value() == "sk-test-key"
     assert settings.openai_model == "gpt-4o-mini"
@@ -33,7 +38,7 @@ def test_settings_parses_comma_separated_cors_origins(
         "http://localhost:3000,http://127.0.0.1:3000",
     )
 
-    settings = Settings()
+    settings = load_settings_from_env()
 
     assert settings.cors_origins == [
         "http://localhost:3000",
