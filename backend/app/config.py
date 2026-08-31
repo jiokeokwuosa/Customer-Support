@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     message_max_length: int = Field(default=4000, ge=1)
     chain_timeout_seconds: float = Field(default=60.0, gt=0)
     chain_target_seconds: float = Field(default=30.0, gt=0)
+    # Relative to the backend working directory unless absolute.
+    database_path: str = Field(default="data/sessions.db")
 
     @field_validator("cors_origins", mode="before")
     @classmethod

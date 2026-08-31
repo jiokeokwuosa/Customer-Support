@@ -27,6 +27,7 @@ def test_settings_defaults_with_required_api_key(
     assert settings.message_max_length == 4000
     assert settings.chain_timeout_seconds == 60.0
     assert settings.chain_target_seconds == 30.0
+    assert settings.database_path == "data/sessions.db"
 
 
 def test_settings_parses_comma_separated_cors_origins(

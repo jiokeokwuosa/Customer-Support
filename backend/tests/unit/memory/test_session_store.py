@@ -1,9 +1,11 @@
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
 
-from app.memory.session_store import InMemorySessionStore, SessionNotFoundError
+from app.memory.session_store import SessionNotFoundError, SqliteSessionStore
+from app.models.message import Citation, LookupResult, LookupType
 from app.models.session import Turn
 from app.models.triage import (
     SentimentLabel,
@@ -13,7 +15,14 @@ from app.models.triage import (
 )
 
 
-def _sample_turn() -> Turn:
+@pytest.fixture
+def store(tmp_path: Path) -> SqliteSessionStore:
+    db = SqliteSessionStore(tmp_path / "sessions.db")
+    yield db
+    db.close()
+
+
+def _sample_turn(*, with_extras: bool = False) -> Turn:
     return Turn(
         id=uuid4(),
         user_message="My order is late",
@@ -24,13 +33,33 @@ def _sample_turn() -> Turn:
             urgency=UrgencyLevel.MEDIUM,
             rationale="Order status question",
         ),
+        citations=(
+            [
+                Citation(
+                    source_id="faq-shipping",
+                    title="Shipping",
+                    excerpt="Orders ship in 3-5 days.",
+                )
+            ]
+            if with_extras
+            else []
+        ),
+        lookup=(
+            LookupResult(
+                lookup_type=LookupType.ORDER,
+                identifier="ORD-12345",
+                found=True,
+                summary="Shipped",
+                details={"carrier": "UPS"},
+            )
+            if with_extras
+            else None
+        ),
         created_at=datetime.now(UTC),
     )
 
 
-def test_create_returns_empty_session() -> None:
-    store = InMemorySessionStore()
-
+def test_create_returns_empty_session(store: SqliteSessionStore) -> None:
     session = store.create()
     stored = store.get(session.id)
 
@@ -40,37 +69,38 @@ def test_create_returns_empty_session() -> None:
     assert stored.id == session.id
 
 
-def test_get_unknown_session_returns_none() -> None:
-    store = InMemorySessionStore()
-
+def test_get_unknown_session_returns_none(store: SqliteSessionStore) -> None:
     assert store.get(uuid4()) is None
 
 
-def test_append_turn_updates_session() -> None:
-    store = InMemorySessionStore()
+def test_append_turn_persists_across_reload(tmp_path: Path) -> None:
+    db_path = tmp_path / "sessions.db"
+    store = SqliteSessionStore(db_path)
     session = store.create()
-    turn = _sample_turn()
+    turn = _sample_turn(with_extras=True)
+    store.append_turn(session.id, turn)
+    store.close()
 
-    updated = store.append_turn(session.id, turn)
-    stored = store.get(session.id)
+    reloaded = SqliteSessionStore(db_path)
+    stored = reloaded.get(session.id)
+    reloaded.close()
 
-    assert len(updated.turns) == 1
-    assert updated.turns[0].user_message == "My order is late"
-    assert updated.updated_at >= session.updated_at
     assert stored is not None
     assert len(stored.turns) == 1
+    assert stored.turns[0].user_message == "My order is late"
+    assert stored.turns[0].citations[0].source_id == "faq-shipping"
+    assert stored.turns[0].lookup is not None
+    assert stored.turns[0].lookup.identifier == "ORD-12345"
 
 
-def test_append_turn_missing_session_raises() -> None:
-    store = InMemorySessionStore()
-
+def test_append_turn_missing_session_raises(store: SqliteSessionStore) -> None:
     with pytest.raises(SessionNotFoundError):
         store.append_turn(uuid4(), _sample_turn())
 
 
-def test_delete_is_idempotent() -> None:
-    store = InMemorySessionStore()
+def test_delete_is_idempotent(store: SqliteSessionStore) -> None:
     session = store.create()
+    store.append_turn(session.id, _sample_turn())
 
     store.delete(session.id)
     store.delete(session.id)

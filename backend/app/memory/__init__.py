@@ -1,13 +1,13 @@
 """Session memory package."""
 
 from app.memory.session_store import (
-    InMemorySessionStore,
     SessionNotFoundError,
     SessionStore,
+    SqliteSessionStore,
 )
 
 __all__ = [
-    "InMemorySessionStore",
     "SessionNotFoundError",
     "SessionStore",
+    "SqliteSessionStore",
 ]

@@ -59,12 +59,15 @@ between steps.
 
 ## 4. Session Memory
 
-**Decision**: In-memory `SessionStore` keyed by UUID `session_id`; stores ordered `Turn` records with user/assistant messages and metadata.
+**Decision**: SQLite `SqliteSessionStore` keyed by UUID `session_id`; stores
+ordered `Turn` rows (relational tables + JSON for nested triage/citations).
+Behind a `SessionStore` protocol so Postgres can replace the file DB later.
 
 **Rationale**: Spec assumes session-scoped memory without auth; satisfies constitution swappable persistence via protocol.
 
 **Alternatives considered**:
-- **Redis**: Overkill for v1 demo
+- **In-memory dict only**: Lost on restart; weaker interview/demo story
+- **Redis**: Overkill for single-machine v1; still a valid SessionStore swap
 - **LangChain `ChatMessageHistory` only**: Insufficient for persisting triage metadata per turn
 
 **Limits**: Trim to last 20 turns or summarize older turns in polish prompt when token budget exceeded.

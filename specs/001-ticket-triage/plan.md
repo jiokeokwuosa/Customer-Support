@@ -32,7 +32,7 @@ throughout. No LangGraph.
 - Frontend: Next.js 14+ (App Router), React 18+, Tailwind CSS, TanStack Query v5,
   zod (optional runtime validation mirroring API)
 
-**Storage**: In-memory session store (v1) behind a `SessionStore` protocol;
+**Storage**: SQLite session store (v1) behind a `SessionStore` protocol;
 bundled markdown/JSON FAQ files + Chroma in-process vector index (rebuilt on
 startup or cached to disk); mock order/account JSON fixtures
 
@@ -126,7 +126,7 @@ backend/
 │   ├── tools/
 │   │   └── lookup.py           # mock order/account @tool
 │   ├── memory/
-│   │   └── session_store.py    # protocol + in-memory impl
+│   │   └── session_store.py    # protocol + SQLite impl
 │   └── services/
 │       └── triage_service.py   # orchestrates pipeline + logging
 ├── data/
