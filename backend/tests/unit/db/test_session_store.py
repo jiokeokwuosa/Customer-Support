@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.memory.session_store import SessionNotFoundError, SqliteSessionStore
+from app.db.session_store import SessionNotFoundError, SqliteSessionStore
 from app.models.message import Citation, LookupResult, LookupType
 from app.models.session import Turn
 from app.models.triage import (

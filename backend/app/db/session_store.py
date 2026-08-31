@@ -1,7 +1,7 @@
-"""Application-facing session memory API.
+"""Application-facing session persistence API.
 
 Callers (FastAPI deps, services) use `SessionStore` / `SqliteSessionStore`.
-SQL details live under `app.db` so storage stays a separate layer.
+Raw SQL lives in `session_repository.py`; connection/schema in `sqlite.py`.
 """
 
 from __future__ import annotations
@@ -46,10 +46,7 @@ class SessionStore(Protocol):
 
 
 class SqliteSessionStore:
-    """SessionStore adapter over SQLite (`app.db`).
-
-    Thin wrapper: orchestration and domain errors here; SQL in the repository.
-    """
+    """SessionStore adapter: orchestration here, SQL in SessionRepository."""
 
     def __init__(self, database_path: str | Path) -> None:
         self._connection = connect_sqlite(database_path)

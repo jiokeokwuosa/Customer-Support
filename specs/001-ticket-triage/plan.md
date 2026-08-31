@@ -120,21 +120,20 @@ backend/
 │   │   ├── refinement/tone_polish.py
 │   │   ├── pipeline.py         # composes full Runnable
 │   │   └── prompts/            # versioned templates
+│   ├── db/
+│   │   ├── sqlite.py             # connection + schema
+│   │   ├── session_repository.py # SQL CRUD
+│   │   └── session_store.py      # SessionStore protocol + SQLite adapter
 │   ├── retrieval/
 │   │   ├── loader.py
-│   │   └── retriever.py        # Chroma + bundled docs
+│   │   └── retriever.py          # Chroma + bundled docs
 │   ├── tools/
-│   │   └── lookup.py           # mock order/account @tool
-│   ├── memory/
-│   │   └── session_store.py    # SessionStore protocol + SQLite adapter
-│   ├── db/
-│   │   ├── sqlite.py           # connection + schema
-│   │   └── session_repository.py
+│   │   └── lookup.py             # mock order/account @tool
 │   └── services/
-│       └── triage_service.py   # orchestrates pipeline + logging
+│       └── triage_service.py     # orchestrates pipeline + logging
 ├── data/
-│   ├── knowledge/              # FAQ/policy markdown
-│   └── fixtures/               # mock orders/accounts
+│   ├── knowledge/                # FAQ/policy markdown
+│   └── fixtures/                 # mock orders/accounts
 └── tests/
     ├── unit/
     ├── integration/

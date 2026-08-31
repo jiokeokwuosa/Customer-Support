@@ -59,9 +59,9 @@ between steps.
 
 ## 4. Session Memory
 
-**Decision**: SQLite via `app.db` (`SessionRepository`) behind a `SessionStore`
-adapter in `app.memory`; keyed by UUID `session_id`; ordered `Turn` rows
-(relational tables + JSON for nested triage/citations).
+**Decision**: SQLite in `app.db` (`SessionRepository` + `SqliteSessionStore`)
+keyed by UUID `session_id`; ordered `Turn` rows (relational tables + JSON for
+nested triage/citations). `SessionStore` protocol keeps callers DB-agnostic.
 
 **Rationale**: Spec assumes session-scoped memory without auth; satisfies constitution swappable persistence via protocol.
 
