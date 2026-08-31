@@ -1,13 +1,12 @@
 <!--
 Sync Impact Report
-- Version change: 2.4.0 → 2.5.0
-- Modified principles: none renamed
-- Added sections:
-  - Pre-PR code review gate (under Git & Branch Workflow)
+- Version change: 2.6.0 → 2.7.0
+- Modified principles:
+  - I. Code Quality First (readability comments guidance)
+- Added sections: none
 - Modified sections:
-  - Quality Gates & Development Workflow (pre-PR review requirement)
-  - Git & Branch Workflow (review-before-PR sequence, declined-PR branch rule)
-  - Governance (compliance includes pre-PR review gate)
+  - Quality Gates & Development Workflow (reviewers check comments)
+  - Governance (compliance includes missing necessary comments)
 - Removed sections: none
 - Follow-up TODOs: none
 -->
@@ -35,6 +34,21 @@ repository—frontend and backend together.
   states (frontend); never swallow errors silently.
 - MUST keep secrets, model keys, and credentials out of source and out of
   client bundles; configure via environment / secret managers only.
+
+**Readability comments**
+
+- MUST add comments where they materially improve readability—non-obvious
+  intent, non-trivial algorithms, LangChain chain/tool wiring, tricky
+  edge cases, workarounds, and invariants that types alone do not convey.
+- Comments MUST explain *why* or *what constraint* applies, not restate
+  what the next line of code already says in plain English.
+- MUST NOT leave large or complex modules without brief orientation
+  comments (module/purpose, unusual control flow, or cross-module
+  contracts) when a new reader would otherwise need to reverse-engineer
+  them.
+- MUST NOT add noisy, redundant, or outdated comments; prefer clear
+  names and structure first, then comment only where necessary.
+- SHOULD keep comments short and adjacent to the code they clarify.
 
 **Backend**
 
@@ -75,7 +89,8 @@ repository—frontend and backend together.
 
 Rationale: One governed codebase keeps the product coherent; Next.js
 boundaries plus TanStack Query and Tailwind keep UI code typed, cacheable,
-and visually consistent without putting agents in the browser.
+and visually consistent without putting agents in the browser. Clear code
+plus necessary comments make learning and review possible without guessing.
 
 ### II. Testing Standards (NON-NEGOTIABLE)
 
@@ -298,8 +313,9 @@ with real snippets turn each task into durable learning, not just output.
    load), and agent/tool or API contract changes.
 5. Reviewers verify constitution compliance: layering, tests, response
    contract, budgets, observability, LangChain-only orchestration (no
-   LangGraph), Next.js/Tailwind/TanStack Query conventions, and no agent
-   secrets or policy bypass in the client.
+   LangGraph), Next.js/Tailwind/TanStack Query conventions, necessary
+   readability comments where non-obvious logic warrants them, and no
+   agent secrets or policy bypass in the client.
 6. No merge of known flaky tests; quarantine requires an owner and issue.
 7. Prompt, tool schema, or public API contract changes include
    before/after examples in the PR and update frontend types, TanStack
@@ -316,6 +332,9 @@ with real snippets turn each task into durable learning, not just output.
     review the branch changes; PR creation is blocked until the review
     passes or the user explicitly directs the implementer to ignore
     specific review findings.
+11. Before opening any pull request, all necessary lint and typecheck
+    commands for touched packages MUST pass locally; PR creation is
+    blocked while lint or type errors remain in the branch diff.
 
 ### Git & Branch Workflow
 
@@ -329,8 +348,8 @@ with real snippets turn each task into durable learning, not just output.
   checkout local `develop`, pull the latest from `origin/develop`, and
   create the feature branch from that updated base.
 - **PR after task completion**: When the user confirms they want a PR,
-  follow the **Pre-PR code review gate** below before pushing and opening
-  the pull request.
+  follow the **Pre-PR lint & typecheck gate** and **Pre-PR code review
+  gate** below—in that order—before pushing and opening the pull request.
 - **When user declines a PR**: Remain on the task branch and note the
   decision. Before starting the next task, checkout `develop`, pull latest
   from `origin/develop`, and create the new branch from that base—MUST NOT
@@ -340,12 +359,30 @@ with real snippets turn each task into durable learning, not just output.
 - **Branch naming**: Feature branches SHOULD use a task id prefix or
   descriptive slug aligned with `tasks.md` for traceability.
 
+### Pre-PR Lint & Typecheck Gate
+
+- **Lint before PR**: When the user requests a pull request, the
+  implementer MUST run all applicable lint, format, and typecheck commands
+  for every touched package before push or PR creation.
+- **Backend commands** (when `backend/` changed): Ruff lint, Ruff format
+  check (or equivalent formatter), and `mypy` (or equivalent)—as defined
+  in `backend/pyproject.toml` or project scripts.
+- **Frontend commands** (when `frontend/` changed): ESLint and TypeScript
+  check (`tsc --noEmit` or equivalent)—as defined in `frontend/package.json`
+  or project scripts.
+- **Pass criteria**: All commands MUST exit zero on the branch diff.
+  Lint or type failures MUST be fixed before proceeding to the code-review
+  gate; MUST NOT open a PR with known lint or type errors in touched files.
+- **Scope**: Run checks only for packages with changes unless a shared
+  config or cross-package import change requires both sides.
+
 ### Pre-PR Code Review Gate
 
 - **Review before PR**: When the user requests a pull request, the
-  implementer MUST NOT create or push-for-PR until a separate code-review
-  agent has reviewed the branch diff against constitution compliance,
-  tests, contracts, and obvious defects.
+  implementer MUST NOT create or push-for-PR until the **Pre-PR lint &
+  typecheck gate** passes and a separate code-review agent has reviewed
+  the branch diff against constitution compliance, tests, contracts, and
+  obvious defects.
 - **Review agent**: The review MUST be performed by a distinct agent
   invocation (e.g., Bugbot or an equivalent dedicated review subagent)—
   not by the same agent that authored the changes without a fresh review
@@ -358,10 +395,11 @@ with real snippets turn each task into durable learning, not just output.
   until either (a) findings are fixed and the review re-run to pass, or
   (b) the user explicitly directs the implementer to ignore specific
   findings and proceed anyway.
-- **PR contents after pass**: Once the gate is satisfied, push the task
-  branch and open a pull request against `origin/develop` with task id,
-  summary, test plan, and a note summarizing the pre-PR review outcome
-  (pass, or user-approved overrides).
+- **PR contents after pass**: Once both pre-PR gates are satisfied, push
+  the task branch and open a pull request against `origin/develop` with
+  task id, summary, test plan, a note confirming lint/typecheck passed,
+  and a note summarizing the pre-PR review outcome (pass, or user-approved
+  overrides).
 
 ## Governance
 
@@ -377,10 +415,11 @@ work—backend and frontend—MUST comply.
 - **Compliance**: Reviews and Spec Kit workflows (`specify`, `plan`,
   `tasks`, `implement`, `analyze`) MUST check work against these
   principles. Unjustified complexity, LangGraph usage, split-repo
-  assumptions, missing post-task explanations (Principle VI), git workflow
-  violations (task branches, `develop` base, post-task PR prompt),
-  pre-PR review gate bypass, or other violations are blocking.
+  assumptions, missing post-task explanations (Principle VI), missing
+  necessary readability comments (Principle I), git workflow violations
+  (task branches, `develop` base, post-task PR prompt), pre-PR lint gate
+  bypass, pre-PR review gate bypass, or other violations are blocking.
 - **Exceptions**: Temporary waivers require documented rationale, expiry,
   and an owner; they MUST NOT be silent.
 
-**Version**: 2.5.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-31
+**Version**: 2.7.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-31
