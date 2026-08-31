@@ -34,7 +34,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T003 [P] Initialize frontend Next.js App Router project in `frontend/` with TypeScript strict, Tailwind CSS, TanStack Query v5
 - [x] T004 [P] Configure backend lint/format/typecheck in `backend/pyproject.toml` (Ruff, mypy)
 - [x] T005 [P] Configure frontend lint/typecheck in `frontend/package.json` (ESLint, TypeScript check)
-- [ ] T006 [P] Add backend dev dependencies in `backend/pyproject.toml` (pytest, pytest-asyncio, httpx)
+- [x] T006 [P] Add backend dev dependencies in `backend/pyproject.toml` (pytest, pytest-asyncio, httpx)
 - [ ] T007 [P] Add frontend test setup in `frontend/vitest.config.ts` and `frontend/tests/setup.ts` (Vitest, React Testing Library)
 - [ ] T008 Create backend environment template `backend/.env.example` (OPENAI_API_KEY, OPENAI_MODEL, CORS_ORIGINS, LOG_LEVEL)
 - [ ] T009 [P] Create frontend environment template `frontend/.env.example` (NEXT_PUBLIC_API_BASE_URL)
