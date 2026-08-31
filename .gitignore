@@ -7,6 +7,15 @@ __pycache__/
 venv/
 .env
 .env.*
+!.env.example
+
+# Environment secrets (templates live in */.env.example)
+backend/.env
+frontend/.env.local
+
+# Virtualenv and frontend dependencies
+backend/.venv/
+frontend/node_modules/
 
 # Node
 node_modules/
@@ -27,5 +36,6 @@ dist/
 htmlcov/
 
 # Chroma / local vector cache
+backend/.chroma/
 .chroma/
 *.sqlite3
