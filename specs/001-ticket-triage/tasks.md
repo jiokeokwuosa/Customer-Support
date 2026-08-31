@@ -53,7 +53,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T013 [P] Define `TurnResponse`, `ErrorResponse`, `SendMessageRequest` in `backend/app/models/message.py`
 - [x] T014 [P] Define `Session`, `Turn`, `CreateSessionResponse` in `backend/app/models/session.py`
 - [x] T015 [P] Mirror API types in `frontend/src/lib/api/types.ts` (TurnResponse, TriageMetadata, Citation, LookupResult, SamplePrompt)
-- [x] T016 Implement `SessionStore` + SQLite in `backend/app/db/` (`sqlite.py`, `session_repository.py`, `session_store.py`)
+- [x] T016 Implement session persistence: `app/db/sqlite.py`, `app/repositories/session_repository.py`, `app/services/session_store.py`
 - [ ] T017 Create FastAPI app factory with CORS in `backend/app/main.py`
 - [ ] T018 Setup API router mount and v1 namespace in `backend/app/api/v1/router.py`
 - [ ] T019 Implement dependency injection module in `backend/app/api/deps.py` (settings, session store, LLM factory with test override hook)
@@ -137,14 +137,14 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Tests for User Story 3
 
-- [ ] T053 [P] [US3] Unit test session store turn append/trim in `backend/tests/unit/db/test_session_store.py`
+- [ ] T053 [P] [US3] Unit test session store turn append/trim in `backend/tests/unit/services/test_session_store.py`
 - [ ] T054 [P] [US3] Integration test multi-turn context in `backend/tests/integration/test_session_memory.py` (mocked LLM)
 
 ### Implementation for User Story 3
 
 - [ ] T055 [US3] Load conversation history into pipeline state in `backend/app/services/triage_service.py`
 - [ ] T056 [US3] Add `MessagesPlaceholder` history to draft and polish prompts in `backend/app/chains/prompts/drafts.py` and `backend/app/chains/prompts/refinement.py`
-- [x] T057 [US3] Implement turn trimming (max 20) in `backend/app/db/session_store.py`
+- [x] T057 [US3] Implement turn trimming (max 20) in `backend/app/services/session_store.py`
 - [ ] T058 [US3] Add "New conversation" control in `frontend/src/components/chat/ChatPanel.tsx` calling session reset/create
 - [ ] T059 [US3] Update `frontend/src/lib/query/hooks/useSession.ts` to handle reset and session id rotation
 

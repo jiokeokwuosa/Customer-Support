@@ -4,7 +4,6 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.db.session_store import SessionNotFoundError, SqliteSessionStore
 from app.models.message import Citation, LookupResult, LookupType
 from app.models.session import Turn
 from app.models.triage import (
@@ -13,6 +12,7 @@ from app.models.triage import (
     TriageMetadata,
     UrgencyLevel,
 )
+from app.services.session_store import SessionNotFoundError, SqliteSessionStore
 
 
 @pytest.fixture

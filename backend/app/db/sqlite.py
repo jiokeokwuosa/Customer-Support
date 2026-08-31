@@ -1,7 +1,7 @@
 """SQLite connection helpers and schema bootstrap.
 
-This is the low-level DB layer: open a connection, enable pragmas, create tables.
-Domain CRUD lives in repositories (e.g. `session_repository.py`).
+This is the low-level DB layer only: open a connection, enable pragmas, create
+tables. Domain CRUD lives in `app.repositories`; orchestration in `app.services`.
 """
 
 from __future__ import annotations

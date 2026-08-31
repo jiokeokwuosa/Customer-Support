@@ -1,8 +1,7 @@
 """SQL access for sessions and turns.
 
-Repositories talk to SQLite and return domain models (`Session`, `Turn`).
-Higher layers (API/services) should use `SessionStore` from `app.db.session_store`,
-not this module directly.
+Repositories own queries and map rows ↔ domain models.
+Callers should go through `app.services.session_store`, not this module directly.
 """
 
 from __future__ import annotations

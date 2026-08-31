@@ -121,19 +121,20 @@ backend/
 │   │   ├── pipeline.py         # composes full Runnable
 │   │   └── prompts/            # versioned templates
 │   ├── db/
-│   │   ├── sqlite.py             # connection + schema
-│   │   ├── session_repository.py # SQL CRUD
-│   │   └── session_store.py      # SessionStore protocol + SQLite adapter
+│   │   └── sqlite.py               # connection + schema only
+│   ├── repositories/
+│   │   └── session_repository.py   # SQL CRUD
+│   ├── services/
+│   │   ├── session_store.py        # SessionStore + SqliteSessionStore
+│   │   └── triage_service.py       # orchestrates pipeline + logging
 │   ├── retrieval/
 │   │   ├── loader.py
-│   │   └── retriever.py          # Chroma + bundled docs
+│   │   └── retriever.py            # Chroma + bundled docs
 │   ├── tools/
-│   │   └── lookup.py             # mock order/account @tool
-│   └── services/
-│       └── triage_service.py     # orchestrates pipeline + logging
+│   │   └── lookup.py               # mock order/account @tool
 ├── data/
-│   ├── knowledge/                # FAQ/policy markdown
-│   └── fixtures/                 # mock orders/accounts
+│   ├── knowledge/                  # FAQ/policy markdown
+│   └── fixtures/                   # mock orders/accounts
 └── tests/
     ├── unit/
     ├── integration/
@@ -224,7 +225,7 @@ TanStack Query.
 | Conditional routing | `RunnableBranch` on topic enum |
 | Sequential refinement | draft → tone_polish chain |
 | Structured output | `PydanticOutputParser` / `with_structured_output` for triage JSON |
-| Memory | `SessionStore` + `MessagesPlaceholder` in polish/draft prompts |
+| Memory | `SessionStore` (services) + `MessagesPlaceholder` in polish/draft prompts |
 | RAG | Chroma retriever over `data/knowledge/` |
 | Tools | `@tool` lookup_order / lookup_account, invoked when regex matches ID |
 | Streaming | `chain.astream_events` → SSE mapping in FastAPI |

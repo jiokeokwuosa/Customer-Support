@@ -1,7 +1,7 @@
-"""Application-facing session persistence API.
+"""Application services for chat sessions.
 
-Callers (FastAPI deps, services) use `SessionStore` / `SqliteSessionStore`.
-Raw SQL lives in `session_repository.py`; connection/schema in `sqlite.py`.
+Services orchestrate repositories and enforce product rules (e.g. turn cap).
+Routes/deps should call here — not repositories or raw `app.db` helpers.
 """
 
 from __future__ import annotations
@@ -11,16 +11,16 @@ from pathlib import Path
 from typing import Protocol, runtime_checkable
 from uuid import UUID
 
-from app.db.session_repository import SessionRepository
 from app.db.sqlite import connect_sqlite
 from app.models.session import Session, Turn
+from app.repositories.session_repository import SessionRepository
 
 # Matches Session.turns max_length / product memory cap (spec VR-003).
 MAX_SESSION_TURNS = 20
 
 
 class SessionNotFoundError(KeyError):
-    """Raised when a session_id is unknown to the store."""
+    """Raised when a session_id is unknown."""
 
     def __init__(self, session_id: UUID) -> None:
         self.session_id = session_id
@@ -49,7 +49,7 @@ class SessionStore(Protocol):
 
 
 class SqliteSessionStore:
-    """SessionStore adapter: orchestration here, SQL in SessionRepository."""
+    """Session service backed by SQLite via SessionRepository."""
 
     def __init__(self, database_path: str | Path) -> None:
         self._connection = connect_sqlite(database_path)
