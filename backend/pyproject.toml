@@ -87,3 +87,10 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+extraPaths = ["."]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
