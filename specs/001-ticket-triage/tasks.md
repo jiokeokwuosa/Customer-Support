@@ -144,7 +144,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 - [ ] T055 [US3] Load conversation history into pipeline state in `backend/app/services/triage_service.py`
 - [ ] T056 [US3] Add `MessagesPlaceholder` history to draft and polish prompts in `backend/app/chains/prompts/drafts.py` and `backend/app/chains/prompts/refinement.py`
-- [ ] T057 [US3] Implement turn trimming (max 20) in `backend/app/db/session_store.py`
+- [x] T057 [US3] Implement turn trimming (max 20) in `backend/app/db/session_store.py`
 - [ ] T058 [US3] Add "New conversation" control in `frontend/src/components/chat/ChatPanel.tsx` calling session reset/create
 - [ ] T059 [US3] Update `frontend/src/lib/query/hooks/useSession.ts` to handle reset and session id rotation
 

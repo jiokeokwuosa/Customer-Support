@@ -15,6 +15,9 @@ from app.db.session_repository import SessionRepository
 from app.db.sqlite import connect_sqlite
 from app.models.session import Session, Turn
 
+# Matches Session.turns max_length / product memory cap (spec VR-003).
+MAX_SESSION_TURNS = 20
+
 
 class SessionNotFoundError(KeyError):
     """Raised when a session_id is unknown to the store."""
@@ -64,12 +67,11 @@ class SqliteSessionStore:
         return self._repo.get_session(session_id)
 
     def append_turn(self, session_id: UUID, turn: Turn) -> Session:
-        """Add one completed exchange to an existing session."""
+        """Add one completed exchange; keep only the newest 20 turns."""
         session = self._repo.get_session(session_id)
         if session is None:
             raise SessionNotFoundError(session_id)
 
-        # Next slot in this chat (0-based). Trimming to max 20 turns is T057.
         position = len(session.turns)
         self._repo.insert_turn(
             session_id,
@@ -77,6 +79,8 @@ class SqliteSessionStore:
             position=position,
             updated_at=datetime.now(UTC),
         )
+        # Trim after write so Session.turns max_length=20 never fails on reload.
+        self._repo.trim_turns(session_id, keep=MAX_SESSION_TURNS)
 
         loaded = self._repo.get_session(session_id)
         if loaded is None:  # pragma: no cover - defensive after successful write

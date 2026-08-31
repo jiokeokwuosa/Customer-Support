@@ -133,3 +133,37 @@ class SessionRepository:
             (str(session_id),),
         )
         self._connection.commit()
+
+    def trim_turns(self, session_id: UUID, keep: int) -> None:
+        """Keep only the newest `keep` turns; drop older ones and renumber."""
+        rows = self._connection.execute(
+            """
+            SELECT id FROM turns
+            WHERE session_id = ?
+            ORDER BY position ASC
+            """,
+            (str(session_id),),
+        ).fetchall()
+        if len(rows) <= keep:
+            return
+
+        # Oldest first; drop everything before the trailing window.
+        overflow = rows[:-keep]
+        self._connection.executemany(
+            "DELETE FROM turns WHERE id = ?",
+            [(row["id"],) for row in overflow],
+        )
+        remaining = self._connection.execute(
+            """
+            SELECT id FROM turns
+            WHERE session_id = ?
+            ORDER BY position ASC
+            """,
+            (str(session_id),),
+        ).fetchall()
+        for index, row in enumerate(remaining):
+            self._connection.execute(
+                "UPDATE turns SET position = ? WHERE id = ?",
+                (index, row["id"]),
+            )
+        self._connection.commit()

@@ -106,3 +106,17 @@ def test_delete_is_idempotent(store: SqliteSessionStore) -> None:
     store.delete(session.id)
 
     assert store.get(session.id) is None
+
+
+def test_append_turn_trims_to_max_twenty(store: SqliteSessionStore) -> None:
+    session = store.create()
+    first = _sample_turn()
+    store.append_turn(session.id, first)
+
+    for _ in range(20):
+        store.append_turn(session.id, _sample_turn())
+
+    stored = store.get(session.id)
+    assert stored is not None
+    assert len(stored.turns) == 20
+    assert all(turn.id != first.id for turn in stored.turns)
