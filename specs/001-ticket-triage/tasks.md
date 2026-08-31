@@ -49,7 +49,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 **⚠️ CRITICAL**: No user story work until this phase is done
 
 - [x] T011 Implement Pydantic settings in `backend/app/config.py` (model names, CORS, timeouts, message max length)
-- [ ] T012 [P] Define shared enums and `TriageMetadata` in `backend/app/models/triage.py`
+- [x] T012 [P] Define shared enums and `TriageMetadata` in `backend/app/models/triage.py`
 - [ ] T013 [P] Define `TurnResponse`, `ErrorResponse`, `SendMessageRequest` in `backend/app/models/message.py`
 - [ ] T014 [P] Define `Session`, `Turn`, `CreateSessionResponse` in `backend/app/models/session.py`
 - [ ] T015 [P] Mirror API types in `frontend/src/lib/api/types.ts` (TurnResponse, TriageMetadata, Citation, LookupResult, SamplePrompt)
