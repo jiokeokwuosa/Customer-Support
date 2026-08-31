@@ -4,8 +4,8 @@ from app.config import Settings, get_settings
 
 
 def load_settings_from_env() -> Settings:
-    """Build settings from the current process environment."""
-    return Settings()  # type: ignore[call-arg]
+    """Build settings from the current process environment only."""
+    return Settings(_env_file=None)  # type: ignore[call-arg]
 
 
 @pytest.fixture(autouse=True)
