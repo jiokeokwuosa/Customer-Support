@@ -36,7 +36,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T005 [P] Configure frontend lint/typecheck in `frontend/package.json` (ESLint, TypeScript check)
 - [x] T006 [P] Add backend dev dependencies in `backend/pyproject.toml` (pytest, pytest-asyncio, httpx)
 - [x] T007 [P] Add frontend test setup in `frontend/vitest.config.ts` and `frontend/tests/setup.ts` (Vitest, React Testing Library)
-- [ ] T008 Create backend environment template `backend/.env.example` (OPENAI_API_KEY, OPENAI_MODEL, CORS_ORIGINS, LOG_LEVEL)
+- [x] T008 Create backend environment template `backend/.env.example` (OPENAI_API_KEY, OPENAI_MODEL, CORS_ORIGINS, LOG_LEVEL)
 - [ ] T009 [P] Create frontend environment template `frontend/.env.example` (NEXT_PUBLIC_API_BASE_URL)
 - [ ] T010 Add root `.gitignore` entries for `backend/.env`, `frontend/.env.local`, `backend/.venv`, `frontend/node_modules`, Chroma cache dirs
 
