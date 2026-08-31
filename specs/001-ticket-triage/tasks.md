@@ -53,7 +53,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T013 [P] Define `TurnResponse`, `ErrorResponse`, `SendMessageRequest` in `backend/app/models/message.py`
 - [x] T014 [P] Define `Session`, `Turn`, `CreateSessionResponse` in `backend/app/models/session.py`
 - [x] T015 [P] Mirror API types in `frontend/src/lib/api/types.ts` (TurnResponse, TriageMetadata, Citation, LookupResult, SamplePrompt)
-- [x] T016 Implement `SessionStore` protocol and SQLite impl in `backend/app/memory/session_store.py`
+- [x] T016 Implement `SessionStore` + SQLite via `app/db` (`session_store.py`, `db/sqlite.py`, `db/session_repository.py`)
 - [ ] T017 Create FastAPI app factory with CORS in `backend/app/main.py`
 - [ ] T018 Setup API router mount and v1 namespace in `backend/app/api/v1/router.py`
 - [ ] T019 Implement dependency injection module in `backend/app/api/deps.py` (settings, session store, LLM factory with test override hook)

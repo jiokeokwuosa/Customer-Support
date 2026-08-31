@@ -126,7 +126,10 @@ backend/
 │   ├── tools/
 │   │   └── lookup.py           # mock order/account @tool
 │   ├── memory/
-│   │   └── session_store.py    # protocol + SQLite impl
+│   │   └── session_store.py    # SessionStore protocol + SQLite adapter
+│   ├── db/
+│   │   ├── sqlite.py           # connection + schema
+│   │   └── session_repository.py
 │   └── services/
 │       └── triage_service.py   # orchestrates pipeline + logging
 ├── data/

@@ -1,7 +1,7 @@
 """Shapes for a chat session and one turn inside it.
 
 These are in-memory / API models (Pydantic). Persistence lives in
-`app.memory.session_store` — this file only describes the data shape.
+`app.db` + `app.memory.session_store` — this file only describes the data shape.
 """
 
 from datetime import datetime
