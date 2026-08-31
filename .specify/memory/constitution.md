@@ -1,12 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: 2.3.0 → 2.4.0
+- Version change: 2.4.0 → 2.5.0
 - Modified principles: none renamed
 - Added sections:
-  - Git & Branch Workflow (under Quality Gates & Development Workflow)
+  - Pre-PR code review gate (under Git & Branch Workflow)
 - Modified sections:
-  - Quality Gates & Development Workflow (task branches, develop base, post-task PR prompt)
-  - Governance (compliance includes git workflow requirements)
+  - Quality Gates & Development Workflow (pre-PR review requirement)
+  - Git & Branch Workflow (review-before-PR sequence, declined-PR branch rule)
+  - Governance (compliance includes pre-PR review gate)
 - Removed sections: none
 - Follow-up TODOs: none
 -->
@@ -311,6 +312,10 @@ with real snippets turn each task into durable learning, not just output.
 9. After each completed task, the implementer MUST ask the user whether
    they want to open a pull request before starting the next task; MUST NOT
    assume merge or PR creation without explicit user confirmation.
+10. Before opening any pull request, a separate code-review agent MUST
+    review the branch changes; PR creation is blocked until the review
+    passes or the user explicitly directs the implementer to ignore
+    specific review findings.
 
 ### Git & Branch Workflow
 
@@ -324,11 +329,39 @@ with real snippets turn each task into durable learning, not just output.
   checkout local `develop`, pull the latest from `origin/develop`, and
   create the feature branch from that updated base.
 - **PR after task completion**: When the user confirms they want a PR,
-  push the task branch and open a pull request against `origin/develop`
-  with task id, summary, and test plan. If the user declines, remain on
-  the task branch or note the decision before proceeding.
+  follow the **Pre-PR code review gate** below before pushing and opening
+  the pull request.
+- **When user declines a PR**: Remain on the task branch and note the
+  decision. Before starting the next task, checkout `develop`, pull latest
+  from `origin/develop`, and create the new branch from that base—MUST NOT
+  branch from an unmerged task branch unless the user explicitly approves
+  stacking dependent work. Unmerged task commits MUST NOT be assumed
+  available to subsequent tasks until merged into `develop`.
 - **Branch naming**: Feature branches SHOULD use a task id prefix or
   descriptive slug aligned with `tasks.md` for traceability.
+
+### Pre-PR Code Review Gate
+
+- **Review before PR**: When the user requests a pull request, the
+  implementer MUST NOT create or push-for-PR until a separate code-review
+  agent has reviewed the branch diff against constitution compliance,
+  tests, contracts, and obvious defects.
+- **Review agent**: The review MUST be performed by a distinct agent
+  invocation (e.g., Bugbot or an equivalent dedicated review subagent)—
+  not by the same agent that authored the changes without a fresh review
+  pass.
+- **Pass criteria**: The review passes when it reports no blocking
+  findings. Non-blocking suggestions MAY proceed to PR at implementer
+  discretion unless the user requires otherwise.
+- **User override**: If the review reports blocking findings, the
+  implementer MUST present them to the user and MUST NOT open the PR
+  until either (a) findings are fixed and the review re-run to pass, or
+  (b) the user explicitly directs the implementer to ignore specific
+  findings and proceed anyway.
+- **PR contents after pass**: Once the gate is satisfied, push the task
+  branch and open a pull request against `origin/develop` with task id,
+  summary, test plan, and a note summarizing the pre-PR review outcome
+  (pass, or user-approved overrides).
 
 ## Governance
 
@@ -345,9 +378,9 @@ work—backend and frontend—MUST comply.
   `tasks`, `implement`, `analyze`) MUST check work against these
   principles. Unjustified complexity, LangGraph usage, split-repo
   assumptions, missing post-task explanations (Principle VI), git workflow
-  violations (task branches, `develop` base, post-task PR prompt), or
-  other violations are blocking.
+  violations (task branches, `develop` base, post-task PR prompt),
+  pre-PR review gate bypass, or other violations are blocking.
 - **Exceptions**: Temporary waivers require documented rationale, expiry,
   and an owner; they MUST NOT be silent.
 
-**Version**: 2.4.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-28
+**Version**: 2.5.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-31
