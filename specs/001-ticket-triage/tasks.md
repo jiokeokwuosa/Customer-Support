@@ -50,9 +50,9 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 - [x] T011 Implement Pydantic settings in `backend/app/config.py` (model names, CORS, timeouts, message max length)
 - [x] T012 [P] Define shared enums and `TriageMetadata` in `backend/app/models/triage.py`
-- [ ] T013 [P] Define `TurnResponse`, `ErrorResponse`, `SendMessageRequest` in `backend/app/models/message.py`
-- [ ] T014 [P] Define `Session`, `Turn`, `CreateSessionResponse` in `backend/app/models/session.py`
-- [ ] T015 [P] Mirror API types in `frontend/src/lib/api/types.ts` (TurnResponse, TriageMetadata, Citation, LookupResult, SamplePrompt)
+- [x] T013 [P] Define `TurnResponse`, `ErrorResponse`, `SendMessageRequest` in `backend/app/models/message.py`
+- [x] T014 [P] Define `Session`, `Turn`, `CreateSessionResponse` in `backend/app/models/session.py`
+- [x] T015 [P] Mirror API types in `frontend/src/lib/api/types.ts` (TurnResponse, TriageMetadata, Citation, LookupResult, SamplePrompt)
 - [ ] T016 Implement `SessionStore` protocol and in-memory impl in `backend/app/memory/session_store.py`
 - [ ] T017 Create FastAPI app factory with CORS in `backend/app/main.py`
 - [ ] T018 Setup API router mount and v1 namespace in `backend/app/api/v1/router.py`
