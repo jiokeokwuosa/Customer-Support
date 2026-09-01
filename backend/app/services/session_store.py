@@ -1,7 +1,7 @@
 """Application services for chat sessions.
 
 Services orchestrate repositories and enforce product rules (e.g. turn cap).
-Routes/deps should call here — not repositories or ORM schema directly.
+Routes/deps should call here — not repositories or ORM models directly.
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.orm import sessionmaker
 
 from app.db.engine import create_db_engine, create_session_factory, init_db
-from app.models.session import Session, Turn
 from app.repositories.session_repository import SessionRepository
+from app.schemas.session import Session, Turn
 
 # Matches Session.turns max_length / product memory cap (spec VR-003).
 MAX_SESSION_TURNS = 20

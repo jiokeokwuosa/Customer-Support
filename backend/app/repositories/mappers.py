@@ -6,10 +6,10 @@ import json
 from typing import Any
 from uuid import UUID
 
-from app.db.schema.session import SessionRecord, TurnRecord
-from app.models.message import Citation, LookupResult
-from app.models.session import Session, Turn
-from app.models.triage import TriageMetadata
+from app.models.session import SessionRecord, TurnRecord
+from app.schemas.message import Citation, LookupResult
+from app.schemas.session import Session, Turn
+from app.schemas.triage import TriageMetadata
 
 
 def turn_record_to_domain(record: TurnRecord) -> Turn:

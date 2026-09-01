@@ -4,8 +4,8 @@ from uuid import UUID
 import pytest
 from pydantic import ValidationError
 
-from app.models.session import CreateSessionResponse, Session, Turn
-from app.models.triage import (
+from app.schemas.session import CreateSessionResponse, Session, Turn
+from app.schemas.triage import (
     SentimentLabel,
     TopicCategory,
     TriageMetadata,

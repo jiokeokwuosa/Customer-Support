@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
-from app.db.schema import SessionRecord, TurnRecord  # noqa: F401 — register tables
+from app.models import SessionRecord, TurnRecord  # noqa: F401 — register tables
 
 
 def create_db_engine(database_path: str | Path) -> Engine:

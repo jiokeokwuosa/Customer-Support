@@ -1,38 +1,5 @@
-"""Pydantic API and domain models."""
+"""SQLAlchemy ORM models (FastAPI convention)."""
 
-from app.models.message import (
-    Citation,
-    ErrorCode,
-    ErrorResponse,
-    LookupResult,
-    LookupType,
-    SendMessageRequest,
-    TurnResponse,
-    TurnStatus,
-)
-from app.models.session import CreateSessionResponse, Session, Turn, TurnRole
-from app.models.triage import (
-    SentimentLabel,
-    TopicCategory,
-    TriageMetadata,
-    UrgencyLevel,
-)
+from app.models.session import SessionRecord, TurnRecord
 
-__all__ = [
-    "Citation",
-    "CreateSessionResponse",
-    "ErrorCode",
-    "ErrorResponse",
-    "LookupResult",
-    "LookupType",
-    "SendMessageRequest",
-    "SentimentLabel",
-    "Session",
-    "TopicCategory",
-    "TriageMetadata",
-    "Turn",
-    "TurnResponse",
-    "TurnRole",
-    "TurnStatus",
-    "UrgencyLevel",
-]
+__all__ = ["SessionRecord", "TurnRecord"]

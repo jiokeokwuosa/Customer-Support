@@ -4,9 +4,9 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.models.message import Citation, LookupResult, LookupType
-from app.models.session import Turn
-from app.models.triage import (
+from app.schemas.message import Citation, LookupResult, LookupType
+from app.schemas.session import Turn
+from app.schemas.triage import (
     SentimentLabel,
     TopicCategory,
     TriageMetadata,

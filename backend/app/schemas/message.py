@@ -1,4 +1,4 @@
-"""Request/response models for sending a message and getting a turn result.
+"""Request/response schemas for sending a message and getting a turn result.
 
 Aligned with `specs/001-ticket-triage/contracts/openapi.yaml` so the API
 and frontend TypeScript types stay in sync conceptually.
@@ -10,7 +10,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.models.triage import TriageMetadata
+from app.schemas.triage import TriageMetadata
 
 
 class LookupType(StrEnum):

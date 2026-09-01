@@ -1,14 +1,14 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models.message import (
+from app.schemas.message import (
     ErrorCode,
     ErrorResponse,
     SendMessageRequest,
     TurnResponse,
     TurnStatus,
 )
-from app.models.triage import (
+from app.schemas.triage import (
     SentimentLabel,
     TopicCategory,
     TriageMetadata,

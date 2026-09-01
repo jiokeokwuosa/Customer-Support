@@ -1,7 +1,7 @@
-"""Database package: SQLAlchemy engine, schema, and session helpers."""
+"""Database package: SQLAlchemy engine and session helpers."""
 
 from app.db.engine import create_db_engine, create_session_factory, init_db
-from app.db.schema import SessionRecord, TurnRecord
+from app.models import SessionRecord, TurnRecord
 
 __all__ = [
     "SessionRecord",

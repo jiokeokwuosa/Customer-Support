@@ -1,6 +1,6 @@
 """Session persistence via SQLAlchemy ORM.
 
-Uses `app.db.schema` table classes and returns `app.models` domain objects.
+Uses `app.models` table classes and returns `app.schemas` domain objects.
 """
 
 from __future__ import annotations
@@ -13,9 +13,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.orm import selectinload
 
-from app.db.schema.session import SessionRecord, TurnRecord
-from app.models.session import Session, Turn
+from app.models.session import SessionRecord, TurnRecord
 from app.repositories.mappers import session_record_to_domain
+from app.schemas.session import Session, Turn
 
 
 class SessionRepository:
