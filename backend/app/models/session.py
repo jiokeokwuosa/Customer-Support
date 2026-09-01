@@ -1,6 +1,7 @@
 """Shapes for a chat session and one turn inside it.
 
-These are API/domain models (Pydantic). Persistence lives in `app.db`.
+These are API/domain models (Pydantic). ORM tables live in `app.db.schema`;
+persistence goes through `app.repositories` and `app.services`.
 """
 
 from datetime import datetime
