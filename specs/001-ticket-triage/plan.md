@@ -121,9 +121,12 @@ backend/
 │   │   ├── pipeline.py         # composes full Runnable
 │   │   └── prompts/            # versioned templates
 │   ├── db/
-│   │   └── sqlite.py               # connection + schema only
+│   │   ├── engine.py               # SQLAlchemy engine + session factory
+│   │   └── schema/                 # ORM table definitions
+│   │       └── session.py
 │   ├── repositories/
-│   │   └── session_repository.py   # SQL CRUD
+│   │   ├── mappers.py              # ORM ↔ Pydantic
+│   │   └── session_repository.py
 │   ├── services/
 │   │   ├── session_store.py        # SqliteSessionStore
 │   │   └── triage_service.py       # orchestrates pipeline + logging

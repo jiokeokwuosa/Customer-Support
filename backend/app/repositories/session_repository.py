@@ -1,93 +1,50 @@
-"""SQL access for sessions and turns.
+"""Session persistence via SQLAlchemy ORM.
 
-Repositories own queries and map rows ↔ domain models.
-Callers should go through `app.services.session_store`, not this module directly.
+Uses `app.db.schema` table classes and returns `app.models` domain objects.
 """
 
 from __future__ import annotations
 
 import json
-import sqlite3
 from datetime import UTC, datetime
-from typing import Any
 from uuid import UUID, uuid4
 
-from app.models.message import Citation, LookupResult
+from sqlalchemy import select
+from sqlalchemy.orm import Session as OrmSession
+from sqlalchemy.orm import selectinload
+
+from app.db.schema.session import SessionRecord, TurnRecord
 from app.models.session import Session, Turn
-from app.models.triage import TriageMetadata
-
-
-def _to_iso(value: datetime) -> str:
-    # SQLite has no native timezone-aware datetime type; store UTC ISO strings.
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=UTC)
-    return value.astimezone(UTC).isoformat()
-
-
-def _from_iso(value: str) -> datetime:
-    return datetime.fromisoformat(value)
-
-
-def _row_to_turn(row: sqlite3.Row) -> Turn:
-    """Convert one SQL row back into the Pydantic Turn model."""
-    citations_raw: list[dict[str, Any]] = json.loads(row["citations_json"])
-    lookup_raw = json.loads(row["lookup_json"]) if row["lookup_json"] else None
-    return Turn(
-        id=UUID(row["id"]),
-        user_message=row["user_message"],
-        assistant_message=row["assistant_message"],
-        triage=TriageMetadata.model_validate_json(row["triage_json"]),
-        citations=[Citation.model_validate(item) for item in citations_raw],
-        lookup=(
-            LookupResult.model_validate(lookup_raw) if lookup_raw is not None else None
-        ),
-        created_at=_from_iso(row["created_at"]),
-    )
+from app.repositories.mappers import session_record_to_domain
 
 
 class SessionRepository:
-    """CRUD for the `sessions` and `turns` tables."""
+    """CRUD for sessions and turns using SQLAlchemy."""
 
-    def __init__(self, connection: sqlite3.Connection) -> None:
-        self._connection = connection
+    def __init__(self, db: OrmSession) -> None:
+        self._db = db
 
     def create_session(self) -> Session:
         now = datetime.now(UTC)
-        session = Session(id=uuid4(), created_at=now, updated_at=now, turns=[])
-        self._connection.execute(
-            "INSERT INTO sessions (id, created_at, updated_at) VALUES (?, ?, ?)",
-            (str(session.id), _to_iso(session.created_at), _to_iso(session.updated_at)),
+        record = SessionRecord(
+            id=str(uuid4()),
+            created_at=now,
+            updated_at=now,
         )
-        self._connection.commit()
-        return session
+        self._db.add(record)
+        self._db.commit()
+        self._db.refresh(record)
+        return session_record_to_domain(record)
 
     def get_session(self, session_id: UUID) -> Session | None:
-        row = self._connection.execute(
-            "SELECT id, created_at, updated_at FROM sessions WHERE id = ?",
-            (str(session_id),),
-        ).fetchone()
-        if row is None:
-            return None
-        turns = self.list_turns(session_id)
-        return Session(
-            id=UUID(row["id"]),
-            created_at=_from_iso(row["created_at"]),
-            updated_at=_from_iso(row["updated_at"]),
-            turns=turns,
+        record = self._db.get(
+            SessionRecord,
+            str(session_id),
+            options=(selectinload(SessionRecord.turns),),
         )
-
-    def list_turns(self, session_id: UUID) -> list[Turn]:
-        rows = self._connection.execute(
-            """
-            SELECT id, user_message, assistant_message, triage_json,
-                   citations_json, lookup_json, created_at
-            FROM turns
-            WHERE session_id = ?
-            ORDER BY position ASC
-            """,
-            (str(session_id),),
-        ).fetchall()
-        return [_row_to_turn(row) for row in rows]
+        if record is None:
+            return None
+        return session_record_to_domain(record)
 
     def insert_turn(
         self,
@@ -97,72 +54,55 @@ class SessionRepository:
         position: int,
         updated_at: datetime,
     ) -> None:
-        self._connection.execute(
-            """
-            INSERT INTO turns (
-                id, session_id, user_message, assistant_message,
-                triage_json, citations_json, lookup_json, created_at, position
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                str(turn.id),
-                str(session_id),
-                turn.user_message,
-                turn.assistant_message,
-                # Serialize nested Pydantic models to JSON text columns.
-                turn.triage.model_dump_json(),
-                json.dumps(
+        record = self._db.get(SessionRecord, str(session_id))
+        if record is None:
+            return
+
+        record.turns.append(
+            TurnRecord(
+                id=str(turn.id),
+                session_id=str(session_id),
+                user_message=turn.user_message,
+                assistant_message=turn.assistant_message,
+                triage_json=turn.triage.model_dump_json(),
+                citations_json=json.dumps(
                     [citation.model_dump(mode="json") for citation in turn.citations]
                 ),
-                (turn.lookup.model_dump_json() if turn.lookup is not None else None),
-                _to_iso(turn.created_at),
-                position,
-            ),
+                lookup_json=(
+                    turn.lookup.model_dump_json() if turn.lookup is not None else None
+                ),
+                created_at=turn.created_at,
+                position=position,
+            )
         )
-        self._connection.execute(
-            "UPDATE sessions SET updated_at = ? WHERE id = ?",
-            (_to_iso(updated_at), str(session_id)),
-        )
-        self._connection.commit()
+        record.updated_at = updated_at
+        self._db.commit()
 
     def delete_session(self, session_id: UUID) -> None:
-        # CASCADE on the FK removes related turns.
-        self._connection.execute(
-            "DELETE FROM sessions WHERE id = ?",
-            (str(session_id),),
-        )
-        self._connection.commit()
+        record = self._db.get(SessionRecord, str(session_id))
+        if record is not None:
+            self._db.delete(record)
+            self._db.commit()
 
     def trim_turns(self, session_id: UUID, keep: int) -> None:
         """Keep only the newest `keep` turns; drop older ones and renumber."""
-        rows = self._connection.execute(
-            """
-            SELECT id FROM turns
-            WHERE session_id = ?
-            ORDER BY position ASC
-            """,
-            (str(session_id),),
-        ).fetchall()
-        if len(rows) <= keep:
+        turns = self._db.scalars(
+            select(TurnRecord)
+            .where(TurnRecord.session_id == str(session_id))
+            .order_by(TurnRecord.position.asc())
+        ).all()
+        if len(turns) <= keep:
             return
 
-        # Oldest first; drop everything before the trailing window.
-        overflow = rows[:-keep]
-        self._connection.executemany(
-            "DELETE FROM turns WHERE id = ?",
-            [(row["id"],) for row in overflow],
-        )
-        remaining = self._connection.execute(
-            """
-            SELECT id FROM turns
-            WHERE session_id = ?
-            ORDER BY position ASC
-            """,
-            (str(session_id),),
-        ).fetchall()
-        for index, row in enumerate(remaining):
-            self._connection.execute(
-                "UPDATE turns SET position = ? WHERE id = ?",
-                (index, row["id"]),
-            )
-        self._connection.commit()
+        for turn in turns[:-keep]:
+            self._db.delete(turn)
+        self._db.flush()
+
+        remaining = self._db.scalars(
+            select(TurnRecord)
+            .where(TurnRecord.session_id == str(session_id))
+            .order_by(TurnRecord.position.asc())
+        ).all()
+        for index, turn in enumerate(remaining):
+            turn.position = index
+        self._db.commit()

@@ -1,7 +1,7 @@
 """Application services for chat sessions.
 
 Services orchestrate repositories and enforce product rules (e.g. turn cap).
-Routes/deps should call here — not repositories or raw `app.db` helpers.
+Routes/deps should call here — not repositories or ORM schema directly.
 """
 
 from __future__ import annotations
@@ -10,7 +10,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
 
-from app.db.sqlite import connect_sqlite
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session as OrmSession
+from sqlalchemy.orm import sessionmaker
+
+from app.db.engine import create_db_engine, create_session_factory, init_db
 from app.models.session import Session, Turn
 from app.repositories.session_repository import SessionRepository
 
@@ -27,14 +31,20 @@ class SessionNotFoundError(KeyError):
 
 
 class SqliteSessionStore:
-    """Session service backed by SQLite via SessionRepository."""
+    """Session service backed by SQLite + SQLAlchemy ORM."""
 
     def __init__(self, database_path: str | Path) -> None:
-        self._connection = connect_sqlite(database_path)
-        self._repo = SessionRepository(self._connection)
+        self._engine: Engine = create_db_engine(database_path)
+        init_db(self._engine)
+        self._session_factory: sessionmaker[OrmSession] = create_session_factory(
+            self._engine
+        )
+        self._db = self._session_factory()
+        self._repo = SessionRepository(self._db)
 
     def close(self) -> None:
-        self._connection.close()
+        self._db.close()
+        self._engine.dispose()
 
     def create(self) -> Session:
         """Start a new empty chat."""
