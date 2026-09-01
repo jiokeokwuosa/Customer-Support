@@ -77,8 +77,8 @@ def create_chat_model(settings: Settings) -> BaseChatModel:
         return _chat_model_factory_override(settings)
     return ChatOpenAI(
         model=settings.openai_model,
-        api_key=settings.openai_api_key.get_secret_value(),
-        request_timeout=settings.chain_timeout_seconds,
+        api_key=settings.openai_api_key,
+        timeout=settings.chain_timeout_seconds,
     )
 
 
