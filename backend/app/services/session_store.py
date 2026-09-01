@@ -6,6 +6,8 @@ Routes/deps should call here — not repositories or ORM models directly.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
@@ -39,42 +41,52 @@ class SqliteSessionStore:
         self._session_factory: sessionmaker[OrmSession] = create_session_factory(
             self._engine
         )
-        self._db = self._session_factory()
-        self._repo = SessionRepository(self._db)
+
+    @contextmanager
+    def _repository(self) -> Iterator[SessionRepository]:
+        # Short-lived ORM session per operation — safe under concurrent requests.
+        db = self._session_factory()
+        try:
+            yield SessionRepository(db)
+        finally:
+            db.close()
 
     def close(self) -> None:
-        self._db.close()
         self._engine.dispose()
 
     def create(self) -> Session:
         """Start a new empty chat."""
-        return self._repo.create_session()
+        with self._repository() as repo:
+            return repo.create_session()
 
     def get(self, session_id: UUID) -> Session | None:
         """Load one session and all of its turns in order."""
-        return self._repo.get_session(session_id)
+        with self._repository() as repo:
+            return repo.get_session(session_id)
 
     def append_turn(self, session_id: UUID, turn: Turn) -> Session:
         """Add one completed exchange; keep only the newest 20 turns."""
-        session = self._repo.get_session(session_id)
-        if session is None:
-            raise SessionNotFoundError(session_id)
+        with self._repository() as repo:
+            session = repo.get_session(session_id)
+            if session is None:
+                raise SessionNotFoundError(session_id)
 
-        position = len(session.turns)
-        self._repo.insert_turn(
-            session_id,
-            turn,
-            position=position,
-            updated_at=datetime.now(UTC),
-        )
-        # Trim after write so Session.turns max_length=20 never fails on reload.
-        self._repo.trim_turns(session_id, keep=MAX_SESSION_TURNS)
+            position = len(session.turns)
+            repo.insert_turn(
+                session_id,
+                turn,
+                position=position,
+                updated_at=datetime.now(UTC),
+            )
+            # Trim after write so Session.turns max_length=20 never fails on reload.
+            repo.trim_turns(session_id, keep=MAX_SESSION_TURNS)
 
-        loaded = self._repo.get_session(session_id)
-        if loaded is None:  # pragma: no cover - defensive after successful write
-            raise SessionNotFoundError(session_id)
-        return loaded
+            loaded = repo.get_session(session_id)
+            if loaded is None:  # pragma: no cover - defensive after successful write
+                raise SessionNotFoundError(session_id)
+            return loaded
 
     def delete(self, session_id: UUID) -> None:
         """Drop a session (and its turns). Safe to call twice."""
-        self._repo.delete_session(session_id)
+        with self._repository() as repo:
+            repo.delete_session(session_id)

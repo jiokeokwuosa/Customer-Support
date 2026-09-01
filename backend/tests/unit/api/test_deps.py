@@ -6,6 +6,7 @@ from langchain_openai import ChatOpenAI
 
 from app.api import deps
 from app.config import Settings, get_settings
+from app.main import create_app
 from app.services.session_store import SqliteSessionStore
 
 
@@ -78,6 +79,21 @@ def test_create_chat_model_builds_openai_client(
 
     assert isinstance(model, ChatOpenAI)
     assert model.model_name == "gpt-4o-mini"
+
+
+def test_create_app_overrides_get_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "from-env.db"))
+    custom_settings = load_settings_from_env().model_copy(
+        update={"database_path": str(tmp_path / "injected.db")}
+    )
+
+    application = create_app(custom_settings)
+
+    assert application.dependency_overrides[get_settings]() is custom_settings
 
 
 def test_override_chat_model_factory_returns_fake(

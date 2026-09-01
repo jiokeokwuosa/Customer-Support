@@ -31,13 +31,19 @@ def override_session_store(store: SqliteSessionStore) -> None:
     _session_store_override = store
 
 
-def reset_session_store_override() -> None:
-    """Clear the session store test override and close any cached instance."""
-    global _session_store, _session_store_override
-    _session_store_override = None
+def reset_cached_session_store() -> None:
+    """Close and drop the process-wide store instance."""
+    global _session_store
     if _session_store is not None:
         _session_store.close()
         _session_store = None
+
+
+def reset_session_store_override() -> None:
+    """Clear the session store test override and close any cached instance."""
+    global _session_store_override
+    _session_store_override = None
+    reset_cached_session_store()
 
 
 def get_session_store(settings: SettingsDep) -> SqliteSessionStore:
