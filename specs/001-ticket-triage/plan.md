@@ -32,7 +32,7 @@ throughout. No LangGraph.
 - Frontend: Next.js 14+ (App Router), React 18+, Tailwind CSS, TanStack Query v5,
   zod (optional runtime validation mirroring API)
 
-**Storage**: SQLite session store (v1) behind a `SessionStore` protocol;
+**Storage**: SQLite session store (v1) via `SqliteSessionStore` in services;
 bundled markdown/JSON FAQ files + Chroma in-process vector index (rebuilt on
 startup or cached to disk); mock order/account JSON fixtures
 
@@ -125,7 +125,7 @@ backend/
 │   ├── repositories/
 │   │   └── session_repository.py   # SQL CRUD
 │   ├── services/
-│   │   ├── session_store.py        # SessionStore + SqliteSessionStore
+│   │   ├── session_store.py        # SqliteSessionStore
 │   │   └── triage_service.py       # orchestrates pipeline + logging
 │   ├── retrieval/
 │   │   ├── loader.py
@@ -225,7 +225,7 @@ TanStack Query.
 | Conditional routing | `RunnableBranch` on topic enum |
 | Sequential refinement | draft → tone_polish chain |
 | Structured output | `PydanticOutputParser` / `with_structured_output` for triage JSON |
-| Memory | `SessionStore` (services) + `MessagesPlaceholder` in polish/draft prompts |
+| Memory | `SqliteSessionStore` + `MessagesPlaceholder` in polish/draft prompts |
 | RAG | Chroma retriever over `data/knowledge/` |
 | Tools | `@tool` lookup_order / lookup_account, invoked when regex matches ID |
 | Streaming | `chain.astream_events` → SSE mapping in FastAPI |

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 from app.db.sqlite import connect_sqlite
@@ -25,27 +24,6 @@ class SessionNotFoundError(KeyError):
     def __init__(self, session_id: UUID) -> None:
         self.session_id = session_id
         super().__init__(f"Session not found: {session_id}")
-
-
-@runtime_checkable
-class SessionStore(Protocol):
-    """Typed checklist of session operations (create/get/append/delete)."""
-
-    def create(self) -> Session:
-        """Create an empty session and return it."""
-        ...
-
-    def get(self, session_id: UUID) -> Session | None:
-        """Return the session if present; otherwise None."""
-        ...
-
-    def append_turn(self, session_id: UUID, turn: Turn) -> Session:
-        """Append a turn and bump updated_at. Raises SessionNotFoundError."""
-        ...
-
-    def delete(self, session_id: UUID) -> None:
-        """Remove a session if it exists (idempotent)."""
-        ...
 
 
 class SqliteSessionStore:

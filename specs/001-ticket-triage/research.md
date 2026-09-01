@@ -60,7 +60,7 @@ between steps.
 ## 4. Session Memory
 
 **Decision**: SQLite connection in `app.db`, SQL in `app.repositories`,
-session orchestration in `app.services` (`SessionStore` / `SqliteSessionStore`).
+session orchestration in `app.services` (`SqliteSessionStore`).
 Keyed by UUID `session_id`; ordered `Turn` rows (relational + JSON for nested
 triage/citations).
 
@@ -68,7 +68,7 @@ triage/citations).
 
 **Alternatives considered**:
 - **In-memory dict only**: Lost on restart; weaker interview/demo story
-- **Redis**: Overkill for single-machine v1; still a valid SessionStore swap
+- **Redis**: Overkill for single-machine v1; swap repository/service later if needed
 - **LangChain `ChatMessageHistory` only**: Insufficient for persisting triage metadata per turn
 
 **Limits**: Trim to last 20 turns or summarize older turns in polish prompt when token budget exceeded.
