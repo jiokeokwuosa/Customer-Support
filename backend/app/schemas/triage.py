@@ -1,4 +1,8 @@
-"""Triage enums and metadata models."""
+"""Labels the triage pipeline puts on each customer message.
+
+These enums match the OpenAPI contract so backend JSON and frontend types
+use the same string values (e.g. topic="billing").
+"""
 
 from enum import StrEnum
 
@@ -26,7 +30,7 @@ class UrgencyLevel(StrEnum):
 
 
 class TriageMetadata(BaseModel):
-    """Structured output from parallel sentiment/topic/urgency analysis."""
+    """Four fields produced by parallel sentiment/topic/urgency analysis."""
 
     topic: TopicCategory
     sentiment: SentimentLabel
@@ -35,7 +39,11 @@ class TriageMetadata(BaseModel):
 
     @classmethod
     def low_confidence_fallback(cls, rationale: str) -> "TriageMetadata":
-        """Default triage when chain output cannot be parsed reliably."""
+        """Safe defaults when the LLM output cannot be parsed cleanly.
+
+        Spec edge case: prefer a cautious general/neutral/medium label over
+        crashing the turn.
+        """
         return cls(
             topic=TopicCategory.GENERAL,
             sentiment=SentimentLabel.NEUTRAL,

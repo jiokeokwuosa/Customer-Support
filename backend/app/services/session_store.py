@@ -1,0 +1,80 @@
+"""Application services for chat sessions.
+
+Services orchestrate repositories and enforce product rules (e.g. turn cap).
+Routes/deps should call here — not repositories or ORM models directly.
+"""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from pathlib import Path
+from uuid import UUID
+
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session as OrmSession
+from sqlalchemy.orm import sessionmaker
+
+from app.db.engine import create_db_engine, create_session_factory, init_db
+from app.repositories.session_repository import SessionRepository
+from app.schemas.session import Session, Turn
+
+# Matches Session.turns max_length / product memory cap (spec VR-003).
+MAX_SESSION_TURNS = 20
+
+
+class SessionNotFoundError(KeyError):
+    """Raised when a session_id is unknown."""
+
+    def __init__(self, session_id: UUID) -> None:
+        self.session_id = session_id
+        super().__init__(f"Session not found: {session_id}")
+
+
+class SqliteSessionStore:
+    """Session service backed by SQLite + SQLAlchemy ORM."""
+
+    def __init__(self, database_path: str | Path) -> None:
+        self._engine: Engine = create_db_engine(database_path)
+        init_db(self._engine)
+        self._session_factory: sessionmaker[OrmSession] = create_session_factory(
+            self._engine
+        )
+        self._db = self._session_factory()
+        self._repo = SessionRepository(self._db)
+
+    def close(self) -> None:
+        self._db.close()
+        self._engine.dispose()
+
+    def create(self) -> Session:
+        """Start a new empty chat."""
+        return self._repo.create_session()
+
+    def get(self, session_id: UUID) -> Session | None:
+        """Load one session and all of its turns in order."""
+        return self._repo.get_session(session_id)
+
+    def append_turn(self, session_id: UUID, turn: Turn) -> Session:
+        """Add one completed exchange; keep only the newest 20 turns."""
+        session = self._repo.get_session(session_id)
+        if session is None:
+            raise SessionNotFoundError(session_id)
+
+        position = len(session.turns)
+        self._repo.insert_turn(
+            session_id,
+            turn,
+            position=position,
+            updated_at=datetime.now(UTC),
+        )
+        # Trim after write so Session.turns max_length=20 never fails on reload.
+        self._repo.trim_turns(session_id, keep=MAX_SESSION_TURNS)
+
+        loaded = self._repo.get_session(session_id)
+        if loaded is None:  # pragma: no cover - defensive after successful write
+            raise SessionNotFoundError(session_id)
+        return loaded
+
+    def delete(self, session_id: UUID) -> None:
+        """Drop a session (and its turns). Safe to call twice."""
+        self._repo.delete_session(session_id)

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models.triage import (
+from app.schemas.triage import (
     SentimentLabel,
     TopicCategory,
     TriageMetadata,

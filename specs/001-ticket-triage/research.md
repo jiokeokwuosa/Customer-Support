@@ -59,12 +59,15 @@ between steps.
 
 ## 4. Session Memory
 
-**Decision**: In-memory `SessionStore` keyed by UUID `session_id`; stores ordered `Turn` records with user/assistant messages and metadata.
+**Decision**: SQLAlchemy ORM in `app.db.schema`, queries in `app.repositories`,
+orchestration in `app.services` (`SqliteSessionStore`). Separate ORM tables from
+Pydantic domain models in `app.models`.
 
 **Rationale**: Spec assumes session-scoped memory without auth; satisfies constitution swappable persistence via protocol.
 
 **Alternatives considered**:
-- **Redis**: Overkill for v1 demo
+- **In-memory dict only**: Lost on restart; weaker interview/demo story
+- **Redis**: Overkill for single-machine v1; swap repository/service later if needed
 - **LangChain `ChatMessageHistory` only**: Insufficient for persisting triage metadata per turn
 
 **Limits**: Trim to last 20 turns or summarize older turns in polish prompt when token budget exceeded.

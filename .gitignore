@@ -39,3 +39,5 @@ htmlcov/
 backend/.chroma/
 .chroma/
 *.sqlite3
+*.db
+!backend/data/**/.gitkeep
