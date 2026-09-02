@@ -8,15 +8,12 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnableLambda
 
+from app.llm.chains.state import require_triage
 from app.llm.prompts.drafts import DRAFT_PROMPT
-from app.schemas.triage import TriageMetadata
 
 
 def _draft_input(state: dict[str, Any]) -> dict[str, str]:
-    triage = state["triage"]
-    if not isinstance(triage, TriageMetadata):
-        msg = "triage must be TriageMetadata"
-        raise TypeError(msg)
+    triage = require_triage(state)
     return {
         "user_message": state["user_message"],
         "topic": triage.topic.value,
