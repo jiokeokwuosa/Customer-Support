@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableLambda
+from pydantic import ValidationError
 
 from app.chains.triage.sentiment_urgency import (
     SentimentUrgencyOutput,
@@ -59,7 +60,7 @@ def test_sentiment_urgency_chain_accepts_calm_general_message() -> None:
 
 
 def test_sentiment_urgency_output_rejects_invalid_labels() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         SentimentUrgencyOutput(
             sentiment="angry",  # type: ignore[arg-type]
             urgency=UrgencyLevel.MEDIUM,
