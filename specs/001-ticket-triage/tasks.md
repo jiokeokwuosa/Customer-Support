@@ -79,7 +79,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 > **Write these tests FIRST; ensure they FAIL before implementation**
 
 - [x] T026 [P] [US1] Unit test sentiment/urgency chain with fake LLM in `backend/tests/unit/chains/test_sentiment_urgency.py`
-- [ ] T027 [P] [US1] Unit test topic classifier chain in `backend/tests/unit/chains/test_topic_classifier.py`
+- [x] T027 [P] [US1] Unit test topic classifier chain in `backend/tests/unit/chains/test_topic_classifier.py`
 - [ ] T028 [P] [US1] Unit test draft chains routing in `backend/tests/unit/chains/test_draft_routing.py`
 - [ ] T029 [P] [US1] Unit test tone polish chain in `backend/tests/unit/chains/test_tone_polish.py`
 - [ ] T030 [P] [US1] Unit test full pipeline composition in `backend/tests/unit/chains/test_pipeline.py`
@@ -88,8 +88,8 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 ### Implementation for User Story 1
 
 - [ ] T032 [P] [US1] Create prompt templates in `backend/app/chains/prompts/triage.py`, `backend/app/chains/prompts/drafts.py`, `backend/app/chains/prompts/refinement.py`
-- [ ] T033 [P] [US1] Implement sentiment & urgency chain in `backend/app/chains/triage/sentiment_urgency.py` (structured output → TriageMetadata fields)
-- [ ] T034 [P] [US1] Implement topic classifier chain in `backend/app/chains/triage/topic_classifier.py`
+- [x] T033 [P] [US1] Implement sentiment & urgency chain in `backend/app/chains/triage/sentiment_urgency.py` (structured output → TriageMetadata fields)
+- [x] T034 [P] [US1] Implement topic classifier chain in `backend/app/chains/triage/topic_classifier.py`
 - [ ] T035 [P] [US1] Implement technical draft chain in `backend/app/chains/drafts/technical.py`
 - [ ] T036 [P] [US1] Implement billing draft chain in `backend/app/chains/drafts/billing.py`
 - [ ] T037 [P] [US1] Implement general draft chain in `backend/app/chains/drafts/general.py`
