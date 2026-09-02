@@ -83,7 +83,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T028 [P] [US1] Unit test topic-aware draft chain in `backend/tests/unit/llm/chains/test_draft.py`
 - [x] T029 [P] [US1] Unit test tone polish chain in `backend/tests/unit/llm/chains/test_tone_polish.py`
 - [x] T030 [P] [US1] Unit test full pipeline composition in `backend/tests/unit/llm/chains/test_pipeline.py`
-- [ ] T031 [US1] Integration test send message endpoint in `backend/tests/integration/test_messages.py` (mocked LLM)
+- [x] T031 [US1] Integration test send message endpoint in `backend/tests/integration/test_messages.py` (mocked LLM)
 
 ### Implementation for User Story 1
 
