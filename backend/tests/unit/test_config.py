@@ -17,6 +17,7 @@ def test_settings_defaults_with_required_api_key(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+    monkeypatch.delenv("DATABASE_PATH", raising=False)
 
     settings = load_settings_from_env()
 

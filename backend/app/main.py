@@ -8,14 +8,15 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import deps
 from app.api.v1.health import router as health_router
 from app.api.v1.router import router as v1_router
 from app.config import Settings, get_settings
+from app.db.database import init_db, settings as db_settings
 
 
 @asynccontextmanager
@@ -25,9 +26,15 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
-    """Build and configure the FastAPI application."""
-    deps.reset_cached_session_store()
+    """Build and configure the FastAPI application.
+
+    When ``settings`` is passed, only the FastAPI ``get_settings`` dependency
+    is overridden (e.g. CORS, model name). The database path always comes from
+    the environment / import-time ``database`` settings module.
+    """
     resolved = settings if settings is not None else get_settings()
+    Path(db_settings.database_path).parent.mkdir(parents=True, exist_ok=True)
+    init_db()
 
     application = FastAPI(
         title="Customer Support Triage API",

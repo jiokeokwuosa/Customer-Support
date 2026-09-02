@@ -1,13 +1,14 @@
-from pathlib import Path
-
 import pytest
 from langchain_community.chat_models.fake import FakeListChatModel
 from langchain_openai import ChatOpenAI
+from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.config import Settings, get_settings
+from app.db.database import get_db
 from app.main import create_app
-from app.services.session_store import SqliteSessionStore
+from app.repositories.session_repository import SessionRepository
+from app.services.session_service import SessionService
 
 
 def load_settings_from_env() -> Settings:
@@ -17,56 +18,33 @@ def load_settings_from_env() -> Settings:
 @pytest.fixture(autouse=True)
 def clear_dependency_state() -> None:
     get_settings.cache_clear()
-    deps.reset_session_store_override()
     deps.reset_chat_model_factory()
     yield
-    deps.reset_session_store_override()
     deps.reset_chat_model_factory()
 
 
-def test_get_session_store_creates_sqlite_store(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
-    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "sessions.db"))
-    settings = load_settings_from_env()
+def test_get_session_service_wires_repository(db: Session) -> None:
+    service = deps.get_session_service(db)
 
-    store = deps.get_session_store(settings)
-
-    assert isinstance(store, SqliteSessionStore)
-    session = store.create()
+    assert isinstance(service, SessionService)
+    session = service.create()
     assert session.turns == []
-    store.close()
 
 
-def test_get_session_store_reuses_singleton(
+def test_get_triage_service_wires_session_service_and_llm(
     monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
-    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "sessions.db"))
-    settings = load_settings_from_env()
-
-    first = deps.get_session_store(settings)
-    second = deps.get_session_store(settings)
-
-    assert first is second
-    first.close()
-
-
-def test_override_session_store_returns_injected_instance(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    db: Session,
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
     settings = load_settings_from_env()
-    injected = SqliteSessionStore(tmp_path / "injected.db")
-    deps.override_session_store(injected)
 
-    assert deps.get_session_store(settings) is injected
+    triage_service = deps.get_triage_service(
+        deps.get_session_service(db),
+        deps.create_chat_model(settings),
+    )
 
-    injected.close()
+    session = triage_service._session_service.create()
+    assert session.turns == []
 
 
 def test_create_chat_model_builds_openai_client(
@@ -81,14 +59,10 @@ def test_create_chat_model_builds_openai_client(
     assert model.model_name == "gpt-4o-mini"
 
 
-def test_create_app_overrides_get_settings(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
+def test_create_app_overrides_get_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
-    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "from-env.db"))
     custom_settings = load_settings_from_env().model_copy(
-        update={"database_path": str(tmp_path / "injected.db")}
+        update={"openai_model": "gpt-4o"},
     )
 
     application = create_app(custom_settings)
@@ -105,3 +79,15 @@ def test_override_chat_model_factory_returns_fake(
     deps.override_chat_model_factory(lambda _settings: fake)
 
     assert deps.create_chat_model(settings) is fake
+
+
+def test_get_db_yields_request_scoped_session(db: Session) -> None:
+    generator = get_db()
+    session = next(generator)
+    try:
+        assert isinstance(session, Session)
+        repo = SessionRepository(session)
+        assert isinstance(deps.get_session_service(session), SessionService)
+        assert repo.create_session().turns == []
+    finally:
+        generator.close()

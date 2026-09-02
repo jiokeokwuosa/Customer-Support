@@ -1,9 +1,10 @@
 from datetime import UTC, datetime
-from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
 
+from app.db.database import SessionLocal
+from app.repositories.session_repository import SessionRepository
 from app.schemas.message import Citation, LookupResult, LookupType
 from app.schemas.session import Turn
 from app.schemas.triage import (
@@ -12,14 +13,12 @@ from app.schemas.triage import (
     TriageMetadata,
     UrgencyLevel,
 )
-from app.services.session_store import SessionNotFoundError, SqliteSessionStore
+from app.services.session_service import SessionNotFoundError, SessionService
 
 
 @pytest.fixture
-def store(tmp_path: Path) -> SqliteSessionStore:
-    db = SqliteSessionStore(tmp_path / "sessions.db")
-    yield db
-    db.close()
+def service(session_service: SessionService) -> SessionService:
+    return session_service
 
 
 def _sample_turn(*, with_extras: bool = False) -> Turn:
@@ -59,9 +58,9 @@ def _sample_turn(*, with_extras: bool = False) -> Turn:
     )
 
 
-def test_create_returns_empty_session(store: SqliteSessionStore) -> None:
-    session = store.create()
-    stored = store.get(session.id)
+def test_create_returns_empty_session(service: SessionService) -> None:
+    session = service.create()
+    stored = service.get(session.id)
 
     assert isinstance(session.id, UUID)
     assert session.turns == []
@@ -69,21 +68,27 @@ def test_create_returns_empty_session(store: SqliteSessionStore) -> None:
     assert stored.id == session.id
 
 
-def test_get_unknown_session_returns_none(store: SqliteSessionStore) -> None:
-    assert store.get(uuid4()) is None
+def test_get_unknown_session_returns_none(service: SessionService) -> None:
+    assert service.get(uuid4()) is None
 
 
-def test_append_turn_persists_across_reload(tmp_path: Path) -> None:
-    db_path = tmp_path / "sessions.db"
-    store = SqliteSessionStore(db_path)
-    session = store.create()
+def test_require_unknown_session_raises(service: SessionService) -> None:
+    with pytest.raises(SessionNotFoundError):
+        service.require(uuid4())
+
+
+def test_require_returns_existing_session(service: SessionService) -> None:
+    session = service.create()
+    assert service.require(session.id).id == session.id
+
+
+def test_append_turn_persists_across_reload(service: SessionService) -> None:
+    session = service.create()
     turn = _sample_turn(with_extras=True)
-    store.append_turn(session.id, turn)
-    store.close()
+    service.append_turn(session.id, turn)
 
-    reloaded = SqliteSessionStore(db_path)
+    reloaded = SessionService(SessionRepository(SessionLocal()))
     stored = reloaded.get(session.id)
-    reloaded.close()
 
     assert stored is not None
     assert len(stored.turns) == 1
@@ -93,30 +98,30 @@ def test_append_turn_persists_across_reload(tmp_path: Path) -> None:
     assert stored.turns[0].lookup.identifier == "ORD-12345"
 
 
-def test_append_turn_missing_session_raises(store: SqliteSessionStore) -> None:
+def test_append_turn_missing_session_raises(service: SessionService) -> None:
     with pytest.raises(SessionNotFoundError):
-        store.append_turn(uuid4(), _sample_turn())
+        service.append_turn(uuid4(), _sample_turn())
 
 
-def test_delete_is_idempotent(store: SqliteSessionStore) -> None:
-    session = store.create()
-    store.append_turn(session.id, _sample_turn())
+def test_delete_is_idempotent(service: SessionService) -> None:
+    session = service.create()
+    service.append_turn(session.id, _sample_turn())
 
-    store.delete(session.id)
-    store.delete(session.id)
+    service.delete(session.id)
+    service.delete(session.id)
 
-    assert store.get(session.id) is None
+    assert service.get(session.id) is None
 
 
-def test_append_turn_trims_to_max_twenty(store: SqliteSessionStore) -> None:
-    session = store.create()
+def test_append_turn_trims_to_max_twenty(service: SessionService) -> None:
+    session = service.create()
     first = _sample_turn()
-    store.append_turn(session.id, first)
+    service.append_turn(session.id, first)
 
     for _ in range(20):
-        store.append_turn(session.id, _sample_turn())
+        service.append_turn(session.id, _sample_turn())
 
-    stored = store.get(session.id)
+    stored = service.get(session.id)
     assert stored is not None
     assert len(stored.turns) == 20
     assert all(turn.id != first.id for turn in stored.turns)

@@ -34,7 +34,10 @@ def _attach_triage_info(state: dict[str, Any]) -> dict[str, Any]:
             "topic": state["topic"],
         }
     )
-    return {**state, "triage": triage}
+    return {
+        "user_message": state["user_message"],
+        "triage": triage,
+    }
 
 
 def build_triage_pipeline(llm: BaseChatModel) -> Runnable:

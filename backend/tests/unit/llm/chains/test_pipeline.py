@@ -50,5 +50,7 @@ def test_attach_triage_info_adds_merged_metadata_to_state() -> None:
     result = _attach_triage_info(state)
 
     assert result["user_message"] == state["user_message"]
+    assert "sentiment_urgency" not in result
+    assert "topic" not in result
     assert isinstance(result["triage"], TriageMetadata)
     assert result["triage"].topic == TopicCategory.BILLING
