@@ -114,7 +114,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 ### Tests for User Story 2
 
 - [x] T047 [P] [US2] Contract test TurnResponse triage fields in `backend/tests/contract/test_turn_response_schema.py`
-- [ ] T048 [P] [US2] Component test TriageBadge rendering in `frontend/tests/components/TriageBadge.test.tsx`
+- [x] T048 [P] [US2] Component test TriageBadge rendering in `frontend/tests/components/TriageBadge.test.tsx`
 
 ### Implementation for User Story 2
 
