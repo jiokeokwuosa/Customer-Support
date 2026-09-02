@@ -52,7 +52,11 @@ def _pipeline_fake_llm(_settings: Settings) -> FakeListChatModel:
     llm = FakeListChatModel(
         responses=["Billing draft reply.", "Polished billing reply."]
     )
-    llm.with_structured_output = MagicMock(side_effect=_structured_output_factory)
+    object.__setattr__(
+        llm,
+        "with_structured_output",
+        MagicMock(side_effect=_structured_output_factory),
+    )
     return llm
 
 
