@@ -19,7 +19,7 @@ from app.chains.triage.sentiment_urgency import (
 from app.schemas.triage import SentimentLabel, UrgencyLevel
 
 
-def _fake_structured_llm(output: SentimentUrgencyOutput) -> BaseChatModel:
+def _fake_structured_llm(output: SentimentUrgencyOutput) -> MagicMock:
     """Fake LLM that returns a fixed structured output (no live OpenAI)."""
     llm = MagicMock(spec=BaseChatModel)
     llm.with_structured_output.return_value = RunnableLambda(lambda _: output)
