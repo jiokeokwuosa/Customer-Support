@@ -78,7 +78,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 > **Write these tests FIRST; ensure they FAIL before implementation**
 
-- [ ] T026 [P] [US1] Unit test sentiment/urgency chain with fake LLM in `backend/tests/unit/chains/test_sentiment_urgency.py`
+- [x] T026 [P] [US1] Unit test sentiment/urgency chain with fake LLM in `backend/tests/unit/chains/test_sentiment_urgency.py`
 - [ ] T027 [P] [US1] Unit test topic classifier chain in `backend/tests/unit/chains/test_topic_classifier.py`
 - [ ] T028 [P] [US1] Unit test draft chains routing in `backend/tests/unit/chains/test_draft_routing.py`
 - [ ] T029 [P] [US1] Unit test tone polish chain in `backend/tests/unit/chains/test_tone_polish.py`
