@@ -9,14 +9,12 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from pathlib import Path
 from uuid import UUID
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.orm import sessionmaker
 
-from app.db.engine import create_db_engine, create_session_factory, init_db
 from app.repositories.session_repository import SessionRepository
 from app.schemas.session import Session, Turn
 
@@ -35,12 +33,8 @@ class SessionNotFoundError(KeyError):
 class SqliteSessionStore:
     """Session service backed by SQLite + SQLAlchemy ORM."""
 
-    def __init__(self, database_path: str | Path) -> None:
-        self._engine: Engine = create_db_engine(database_path)
-        init_db(self._engine)
-        self._session_factory: sessionmaker[OrmSession] = create_session_factory(
-            self._engine
-        )
+    def __init__(self, session_factory: sessionmaker[OrmSession]) -> None:
+        self._session_factory = session_factory
 
     @contextmanager
     def _repository(self) -> Iterator[SessionRepository]:
@@ -52,7 +46,13 @@ class SqliteSessionStore:
             db.close()
 
     def close(self) -> None:
-        self._engine.dispose()
+        db = self._session_factory()
+        try:
+            engine = db.get_bind()
+            if isinstance(engine, Engine):
+                engine.dispose()
+        finally:
+            db.close()
 
     def create(self) -> Session:
         """Start a new empty chat."""

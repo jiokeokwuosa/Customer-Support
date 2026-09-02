@@ -8,6 +8,7 @@ from uuid import uuid4
 import pytest
 from langchain_core.runnables import RunnableLambda
 from tests.helpers.fake_llm import failing_structured_output_llm, pipeline_fake_llm
+from tests.helpers.session_store import make_sqlite_session_store
 
 from app.schemas.message import ErrorCode, TurnStatus
 from app.schemas.triage import SentimentLabel, TopicCategory, UrgencyLevel
@@ -17,7 +18,7 @@ from app.services.triage_service import TriageService
 
 @pytest.fixture
 def store(tmp_path: Path) -> SqliteSessionStore:
-    db = SqliteSessionStore(tmp_path / "sessions.db")
+    db = make_sqlite_session_store(tmp_path / "sessions.db")
     yield db
     db.close()
 

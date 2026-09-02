@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from langchain_community.chat_models.fake import FakeListChatModel
 from langchain_openai import ChatOpenAI
+from tests.helpers.session_store import make_sqlite_session_store
 
 from app.api import deps
 from app.config import Settings, get_settings
@@ -61,7 +62,7 @@ def test_override_session_store_returns_injected_instance(
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
     settings = load_settings_from_env()
-    injected = SqliteSessionStore(tmp_path / "injected.db")
+    injected = make_sqlite_session_store(tmp_path / "injected.db")
     deps.override_session_store(injected)
 
     assert deps.get_session_store(settings) is injected

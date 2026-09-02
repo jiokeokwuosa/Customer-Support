@@ -3,6 +3,7 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
+from tests.helpers.session_store import make_sqlite_session_store
 
 from app.schemas.message import Citation, LookupResult, LookupType
 from app.schemas.session import Turn
@@ -17,7 +18,7 @@ from app.services.session_store import SessionNotFoundError, SqliteSessionStore
 
 @pytest.fixture
 def store(tmp_path: Path) -> SqliteSessionStore:
-    db = SqliteSessionStore(tmp_path / "sessions.db")
+    db = make_sqlite_session_store(tmp_path / "sessions.db")
     yield db
     db.close()
 
@@ -85,13 +86,13 @@ def test_require_returns_existing_session(store: SqliteSessionStore) -> None:
 
 def test_append_turn_persists_across_reload(tmp_path: Path) -> None:
     db_path = tmp_path / "sessions.db"
-    store = SqliteSessionStore(db_path)
+    store = make_sqlite_session_store(db_path)
     session = store.create()
     turn = _sample_turn(with_extras=True)
     store.append_turn(session.id, turn)
     store.close()
 
-    reloaded = SqliteSessionStore(db_path)
+    reloaded = make_sqlite_session_store(db_path)
     stored = reloaded.get(session.id)
     reloaded.close()
 

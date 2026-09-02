@@ -14,6 +14,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
 from app.config import Settings, get_settings
+from app.db.engine import create_db_engine, create_session_factory, init_db
 from app.services.session_store import SqliteSessionStore
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
@@ -46,13 +47,19 @@ def reset_session_store_override() -> None:
     reset_cached_session_store()
 
 
+def _create_session_store(database_path: str) -> SqliteSessionStore:
+    engine = create_db_engine(database_path)
+    init_db(engine)
+    return SqliteSessionStore(create_session_factory(engine))
+
+
 def get_session_store(settings: SettingsDep) -> SqliteSessionStore:
     """Return a process-wide session store (one SQLite file per app process)."""
     global _session_store
     if _session_store_override is not None:
         return _session_store_override
     if _session_store is None:
-        _session_store = SqliteSessionStore(settings.database_path)
+        _session_store = _create_session_store(settings.database_path)
     return _session_store
 
 

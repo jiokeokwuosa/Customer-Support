@@ -9,6 +9,7 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 from tests.helpers.fake_llm import pipeline_fake_llm
+from tests.helpers.session_store import make_sqlite_session_store
 
 from app.api import deps
 from app.config import Settings, get_settings
@@ -35,7 +36,7 @@ def db_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def session_store(db_path: Path) -> Iterator[SqliteSessionStore]:
-    store = SqliteSessionStore(db_path)
+    store = make_sqlite_session_store(db_path)
     yield store
     store.close()
 
