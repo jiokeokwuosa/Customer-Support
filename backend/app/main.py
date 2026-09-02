@@ -10,13 +10,17 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.v1.health import router as health_router
 from app.api.v1.router import router as v1_router
 from app.config import Settings, get_settings
 from app.db.database import init_db, settings as db_settings
+from app.schemas.message import ErrorCode, ErrorResponse
+from app.services.session_service import SessionNotFoundError
 
 
 @asynccontextmanager
@@ -41,6 +45,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    @application.exception_handler(RequestValidationError)
+    async def validation_error_handler(
+        _request: Request,
+        _exc: RequestValidationError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=422,
+            content=ErrorResponse(
+                message="Invalid request body",
+                error_code=ErrorCode.VALIDATION_ERROR,
+            ).model_dump(mode="json"),
+        )
+
+    @application.exception_handler(SessionNotFoundError)
+    async def session_not_found_handler(
+        _request: Request,
+        exc: SessionNotFoundError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=404,
+            content=ErrorResponse(
+                message="Session not found",
+                error_code=ErrorCode.SESSION_NOT_FOUND,
+            ).model_dump(mode="json"),
+        )
 
     if settings is not None:
         application.dependency_overrides[get_settings] = lambda: resolved
