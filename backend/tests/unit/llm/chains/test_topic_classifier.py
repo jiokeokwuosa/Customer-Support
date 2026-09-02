@@ -9,7 +9,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableLambda
 from pydantic import ValidationError
 
-from app.chains.triage.topic_classifier import (
+from app.llm.chains.classification.topic_classifier import (
     TopicClassificationOutput,
     build_topic_classifier_chain,
 )

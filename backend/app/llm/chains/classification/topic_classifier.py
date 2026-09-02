@@ -3,22 +3,11 @@
 from __future__ import annotations
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel, Field
 
+from app.llm.prompts.classification import TOPIC_CLASSIFIER_PROMPT
 from app.schemas.triage import TopicCategory
-
-_TOPIC_CLASSIFIER_PROMPT = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "Classify the customer support message topic and explain why "
-            "in one short rationale.",
-        ),
-        ("human", "{user_message}"),
-    ]
-)
 
 
 class TopicClassificationOutput(BaseModel):
@@ -31,4 +20,4 @@ class TopicClassificationOutput(BaseModel):
 def build_topic_classifier_chain(llm: BaseChatModel) -> Runnable:
     """Build an LCEL chain: prompt → structured LLM output."""
     structured_llm = llm.with_structured_output(TopicClassificationOutput)
-    return _TOPIC_CLASSIFIER_PROMPT | structured_llm
+    return TOPIC_CLASSIFIER_PROMPT | structured_llm

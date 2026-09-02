@@ -65,7 +65,7 @@ Library (frontend)
 
 | Principle | Requirement | Plan Compliance |
 |-----------|-------------|-----------------|
-| I. Code Quality | Monorepo, typed, thin routers, LangChain isolated | ✅ `backend/` + `frontend/`; chains in `app/chains/`; FastAPI routers delegate to services |
+| I. Code Quality | Monorepo, typed, thin routers, LangChain isolated | ✅ `backend/` + `frontend/`; LLM layer in `app/llm/`; FastAPI routers delegate to services |
 | I. Code Quality | No LangGraph | ✅ LCEL + RunnableParallel + RunnableBranch only |
 | II. Testing | TDD, contract tests, mocked LLMs in CI | ✅ OpenAPI contract tests; chain unit tests with FakeListChatModel |
 | III. UX Consistency | Single response contract, shared loading/error patterns | ✅ Unified `TurnResponse` schema; shared UI status components |
@@ -109,17 +109,19 @@ backend/
 │   │   ├── session.py
 │   │   ├── message.py
 │   │   └── triage.py
-│   ├── chains/                 # LangChain LCEL (isolated)
-│   │   ├── triage/
-│   │   │   ├── sentiment_urgency.py
-│   │   │   └── topic_classifier.py
-│   │   ├── drafts/
-│   │   │   ├── technical.py
-│   │   │   ├── billing.py
-│   │   │   └── general.py
-│   │   ├── refinement/tone_polish.py
-│   │   ├── pipeline.py         # composes full Runnable
-│   │   └── prompts/            # versioned templates
+│   ├── llm/                    # LangChain integration (isolated)
+│   │   ├── prompts/            # ChatPromptTemplate definitions
+│   │   │   ├── classification.py
+│   │   │   ├── drafts.py
+│   │   │   └── refinement.py
+│   │   └── chains/             # LCEL runnables
+│   │       ├── classification/
+│   │       │   ├── sentiment_urgency.py
+│   │       │   └── topic_classifier.py
+│   │       ├── drafts/
+│   │       │   └── draft.py
+│   │       ├── refinement/tone_polish.py
+│   │       └── pipeline.py     # composes full Runnable
 │   ├── db/
 │   │   ├── engine.py               # SQLAlchemy engine + session factory
 │   │   └── schema/                 # ORM table definitions
@@ -175,8 +177,9 @@ frontend/
 ```
 
 **Structure Decision**: Option 2 web application layout per constitution. Backend
-LangChain code lives exclusively under `backend/app/chains/` with a single
-`TriageService` entry point for API layers. Frontend chat is a client island
+LangChain code lives exclusively under `backend/app/llm/` — prompts and chains as
+sibling packages — with a single `TriageService` entry point for API layers.
+Frontend chat is a client island
 (`'use client'`) inside a Server Component page shell; all server state via
 TanStack Query.
 
@@ -207,7 +210,7 @@ TanStack Query.
 │  │  sentiment_urgency (JSON)  │  topic_classifier           │ │
 │  └────────────────────────────┴─────────────────────────────┘ │
 │                            │                                    │
-│              RunnableBranch (topic → draft chain)               │
+│              topic-aware draft chain (topic via prompt)          │
 │                            │                                    │
 │  ┌─ optional parallel enrich ────────────────────────────────┐  │
 │  │  retriever (if policy intent) │ tool lookup (if ID found)│  │
@@ -225,7 +228,7 @@ TanStack Query.
 |----------------------|----------------|
 | Prompt templates | `chains/prompts/*.py` ChatPromptTemplate per chain |
 | Parallel chaining | `RunnableParallel` for sentiment + topic |
-| Conditional routing | `RunnableBranch` on topic enum |
+| Conditional routing | Topic label passed into single draft prompt |
 | Sequential refinement | draft → tone_polish chain |
 | Structured output | `PydanticOutputParser` / `with_structured_output` for triage JSON |
 | Memory | `SqliteSessionStore` + `MessagesPlaceholder` in polish/draft prompts |

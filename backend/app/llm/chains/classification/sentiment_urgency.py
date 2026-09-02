@@ -3,22 +3,11 @@
 from __future__ import annotations
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel
 
+from app.llm.prompts.classification import SENTIMENT_URGENCY_PROMPT
 from app.schemas.triage import SentimentLabel, UrgencyLevel
-
-_SENTIMENT_URGENCY_PROMPT = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "Analyze the customer support message. "
-            "Return sentiment and urgency only.",
-        ),
-        ("human", "{user_message}"),
-    ]
-)
 
 
 class SentimentUrgencyOutput(BaseModel):
@@ -31,4 +20,4 @@ class SentimentUrgencyOutput(BaseModel):
 def build_sentiment_urgency_chain(llm: BaseChatModel) -> Runnable:
     """Build an LCEL chain: prompt → structured LLM output."""
     structured_llm = llm.with_structured_output(SentimentUrgencyOutput)
-    return _SENTIMENT_URGENCY_PROMPT | structured_llm
+    return SENTIMENT_URGENCY_PROMPT | structured_llm

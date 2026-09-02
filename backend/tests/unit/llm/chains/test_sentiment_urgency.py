@@ -12,7 +12,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableLambda
 from pydantic import ValidationError
 
-from app.chains.triage.sentiment_urgency import (
+from app.llm.chains.classification.sentiment_urgency import (
     SentimentUrgencyOutput,
     build_sentiment_urgency_chain,
 )
