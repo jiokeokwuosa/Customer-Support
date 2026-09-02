@@ -47,3 +47,39 @@ export interface SamplePrompt {
   message: string;
   expected_topic?: TopicCategory;
 }
+
+export type ErrorCode =
+  | "VALIDATION_ERROR"
+  | "SESSION_NOT_FOUND"
+  | "LLM_ERROR"
+  | "LLM_TIMEOUT"
+  | "SERVICE_UNAVAILABLE";
+
+export interface ErrorResponse {
+  status: "error";
+  message: string;
+  error_code: ErrorCode;
+  next_actions: string[];
+}
+
+export interface CreateSessionResponse {
+  session_id: string;
+  created_at: string;
+}
+
+export interface HealthResponse {
+  status: "ok";
+}
+
+export interface ReadyResponse {
+  status: "ready";
+  knowledge_loaded: boolean;
+}
+
+export interface SendMessageRequest {
+  message: string;
+}
+
+export interface SamplePromptsResponse {
+  prompts: SamplePrompt[];
+}
