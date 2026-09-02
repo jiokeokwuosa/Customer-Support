@@ -78,23 +78,21 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 > **Write these tests FIRST; ensure they FAIL before implementation**
 
-- [ ] T026 [P] [US1] Unit test sentiment/urgency chain with fake LLM in `backend/tests/unit/chains/test_sentiment_urgency.py`
-- [ ] T027 [P] [US1] Unit test topic classifier chain in `backend/tests/unit/chains/test_topic_classifier.py`
-- [ ] T028 [P] [US1] Unit test draft chains routing in `backend/tests/unit/chains/test_draft_routing.py`
-- [ ] T029 [P] [US1] Unit test tone polish chain in `backend/tests/unit/chains/test_tone_polish.py`
-- [ ] T030 [P] [US1] Unit test full pipeline composition in `backend/tests/unit/chains/test_pipeline.py`
+- [x] T026 [P] [US1] Unit test sentiment/urgency chain with fake LLM in `backend/tests/unit/llm/chains/test_sentiment_urgency.py`
+- [x] T027 [P] [US1] Unit test topic classifier chain in `backend/tests/unit/llm/chains/test_topic_classifier.py`
+- [x] T028 [P] [US1] Unit test topic-aware draft chain in `backend/tests/unit/llm/chains/test_draft.py`
+- [x] T029 [P] [US1] Unit test tone polish chain in `backend/tests/unit/llm/chains/test_tone_polish.py`
+- [x] T030 [P] [US1] Unit test full pipeline composition in `backend/tests/unit/llm/chains/test_pipeline.py`
 - [ ] T031 [US1] Integration test send message endpoint in `backend/tests/integration/test_messages.py` (mocked LLM)
 
 ### Implementation for User Story 1
 
-- [ ] T032 [P] [US1] Create prompt templates in `backend/app/chains/prompts/triage.py`, `backend/app/chains/prompts/drafts.py`, `backend/app/chains/prompts/refinement.py`
-- [ ] T033 [P] [US1] Implement sentiment & urgency chain in `backend/app/chains/triage/sentiment_urgency.py` (structured output → TriageMetadata fields)
-- [ ] T034 [P] [US1] Implement topic classifier chain in `backend/app/chains/triage/topic_classifier.py`
-- [ ] T035 [P] [US1] Implement technical draft chain in `backend/app/chains/drafts/technical.py`
-- [ ] T036 [P] [US1] Implement billing draft chain in `backend/app/chains/drafts/billing.py`
-- [ ] T037 [P] [US1] Implement general draft chain in `backend/app/chains/drafts/general.py`
-- [ ] T038 [US1] Implement tone polish chain in `backend/app/chains/refinement/tone_polish.py`
-- [ ] T039 [US1] Compose LCEL pipeline (RunnableParallel → RunnableBranch → polish) in `backend/app/chains/pipeline.py`
+- [x] T032 [P] [US1] Create prompt templates in `backend/app/llm/prompts/classification.py`, `backend/app/llm/prompts/drafts.py`, `backend/app/llm/prompts/refinement.py`
+- [x] T033 [P] [US1] Implement sentiment & urgency chain in `backend/app/llm/chains/classification/sentiment_urgency.py` (structured output → TriageMetadata fields)
+- [x] T034 [P] [US1] Implement topic classifier chain in `backend/app/llm/chains/classification/topic_classifier.py`
+- [x] T035 [P] [US1] Implement topic-aware draft chain in `backend/app/llm/chains/drafts/draft.py`
+- [x] T038 [US1] Implement tone polish chain in `backend/app/llm/chains/refinement/tone_polish.py`
+- [x] T039 [US1] Compose LCEL pipeline (RunnableParallel → draft → polish) in `backend/app/llm/chains/pipeline.py`
 - [ ] T040 [US1] Implement `TriageService` orchestrator in `backend/app/services/triage_service.py`
 - [ ] T041 [US1] Implement session endpoints in `backend/app/api/v1/sessions.py` (POST create, DELETE reset)
 - [ ] T042 [US1] Implement sync message endpoint in `backend/app/api/v1/messages.py` (POST `/messages`)
@@ -120,7 +118,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Implementation for User Story 2
 
-- [ ] T049 [US2] Ensure pipeline populates `rationale` in `backend/app/chains/triage/topic_classifier.py` and merges in `backend/app/services/triage_service.py`
+- [ ] T049 [US2] Ensure pipeline populates `rationale` in `backend/app/llm/chains/classification/topic_classifier.py` and merges in `backend/app/services/triage_service.py`
 - [ ] T050 [US2] Implement `TriageBadge` component in `frontend/src/components/chat/TriageBadge.tsx` (topic, sentiment, urgency, rationale)
 - [ ] T051 [US2] Integrate triage display into `frontend/src/components/chat/MessageList.tsx` per assistant turn
 - [ ] T052 [US2] Add triage-focused layout styling in `frontend/src/components/chat/ChatPanel.tsx` (metadata column / badges row)
@@ -143,7 +141,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 ### Implementation for User Story 3
 
 - [ ] T055 [US3] Load conversation history into pipeline state in `backend/app/services/triage_service.py`
-- [ ] T056 [US3] Add `MessagesPlaceholder` history to draft and polish prompts in `backend/app/chains/prompts/drafts.py` and `backend/app/chains/prompts/refinement.py`
+- [ ] T056 [US3] Add `MessagesPlaceholder` history to draft and polish prompts in `backend/app/llm/prompts/drafts.py` and `backend/app/llm/prompts/refinement.py`
 - [x] T057 [US3] Implement turn trimming (max 20) in `backend/app/services/session_store.py`
 - [ ] T058 [US3] Add "New conversation" control in `frontend/src/components/chat/ChatPanel.tsx` calling session reset/create
 - [ ] T059 [US3] Update `frontend/src/lib/query/hooks/useSession.ts` to handle reset and session id rotation
@@ -169,7 +167,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [ ] T063 [P] [US4] Add bundled FAQ/policy markdown files in `backend/data/knowledge/` (refunds, returns, password reset, billing cycle)
 - [ ] T064 [US4] Implement document loader in `backend/app/retrieval/loader.py`
 - [ ] T065 [US4] Implement Chroma retriever factory in `backend/app/retrieval/retriever.py`
-- [ ] T066 [US4] Wire retrieval into pipeline when policy intent detected in `backend/app/chains/pipeline.py`
+- [ ] T066 [US4] Wire retrieval into pipeline when policy intent detected in `backend/app/llm/chains/pipeline.py`
 - [ ] T067 [US4] Map retrieved chunks to `Citation` models in `backend/app/services/triage_service.py`
 - [ ] T068 [US4] Update `/ready` to reflect knowledge index status in `backend/app/api/v1/health.py`
 - [ ] T069 [US4] Implement `CitationList` component in `frontend/src/components/chat/CitationList.tsx`
@@ -196,7 +194,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [ ] T074 [P] [US5] Add mock order/account fixtures in `backend/data/fixtures/orders.json` and `backend/data/fixtures/accounts.json`
 - [ ] T075 [US5] Implement `@tool` lookup functions in `backend/app/tools/lookup.py`
 - [ ] T076 [US5] Implement ID detection helper in `backend/app/tools/id_detector.py`
-- [ ] T077 [US5] Integrate tool lookup into pipeline enrich step in `backend/app/chains/pipeline.py`
+- [ ] T077 [US5] Integrate tool lookup into pipeline enrich step in `backend/app/llm/chains/pipeline.py`
 - [ ] T078 [US5] Add lookup indicator UI in `frontend/src/components/chat/LookupBadge.tsx` and integrate in `frontend/src/components/chat/MessageList.tsx`
 
 **Checkpoint**: Order/account IDs enrich responses with mock data
@@ -317,17 +315,15 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ```bash
 # Tests together (must fail first):
-T026 backend/tests/unit/chains/test_sentiment_urgency.py
-T027 backend/tests/unit/chains/test_topic_classifier.py
-T028 backend/tests/unit/chains/test_draft_routing.py
-T029 backend/tests/unit/chains/test_tone_polish.py
+T026 backend/tests/unit/llm/chains/test_sentiment_urgency.py
+T027 backend/tests/unit/llm/chains/test_topic_classifier.py
+T028 backend/tests/unit/llm/chains/test_draft.py
+T029 backend/tests/unit/llm/chains/test_tone_polish.py
 
 # Chain modules together:
-T033 backend/app/chains/triage/sentiment_urgency.py
-T034 backend/app/chains/triage/topic_classifier.py
-T035 backend/app/chains/drafts/technical.py
-T036 backend/app/chains/drafts/billing.py
-T037 backend/app/chains/drafts/general.py
+T033 backend/app/llm/chains/classification/sentiment_urgency.py
+T034 backend/app/llm/chains/classification/topic_classifier.py
+T035 backend/app/llm/chains/drafts/draft.py
 ```
 
 ---
