@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import { Button } from "@/components/ui/Button";
 
@@ -12,7 +12,7 @@ type MessageInputProps = {
 export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   const [message, setMessage] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmed = message.trim();
     if (!trimmed || disabled) {

@@ -16,22 +16,15 @@ function sendMessage(
   });
 }
 
-export function useSendMessage(sessionId: string | null) {
+export function useSendMessage(sessionId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (message: string) => {
-      if (!sessionId) {
-        return Promise.reject(new Error("Session not ready"));
-      }
-      return sendMessage(sessionId, { message });
-    },
+    mutationFn: (message: string) => sendMessage(sessionId, { message }),
     onSuccess: () => {
-      if (sessionId) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.messages.bySession(sessionId),
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.messages.bySession(sessionId),
+      });
     },
   });
 }
