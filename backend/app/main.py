@@ -62,7 +62,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @application.exception_handler(SessionNotFoundError)
     async def session_not_found_handler(
         _request: Request,
-        exc: SessionNotFoundError,
+        _exc: SessionNotFoundError,
     ) -> JSONResponse:
         return JSONResponse(
             status_code=404,

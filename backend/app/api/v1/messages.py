@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter
 
 from app.api.deps import TriageServiceDep
 from app.schemas.message import SendMessageRequest, TurnResponse
