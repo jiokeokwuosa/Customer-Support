@@ -95,11 +95,11 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T039 [US1] Compose LCEL pipeline (RunnableParallel → draft → polish) in `backend/app/llm/chains/pipeline.py`
 - [x] T040 [US1] Implement `TriageService` orchestrator in `backend/app/services/triage_service.py`
 - [x] T041 [US1] Implement session endpoints in `backend/app/api/v1/sessions.py` (POST create, DELETE reset)
-- [ ] T042 [US1] Implement sync message endpoint in `backend/app/api/v1/messages.py` (POST `/messages`)
-- [ ] T043 [P] [US1] Implement `useSession` hook in `frontend/src/lib/query/hooks/useSession.ts`
-- [ ] T044 [P] [US1] Implement `useSendMessage` mutation in `frontend/src/lib/query/hooks/useSendMessage.ts`
-- [ ] T045 [US1] Build minimal chat UI in `frontend/src/components/chat/ChatPanel.tsx`, `frontend/src/components/chat/MessageInput.tsx`, `frontend/src/components/chat/MessageList.tsx`
-- [ ] T046 [US1] Wire chat page shell in `frontend/src/app/page.tsx` and `frontend/src/app/layout.tsx`
+- [x] T042 [US1] Implement sync message endpoint in `backend/app/api/v1/messages.py` (POST `/messages`)
+- [x] T043 [P] [US1] Implement `useSession` hook in `frontend/src/lib/query/hooks/useSession.ts`
+- [x] T044 [P] [US1] Implement `useSendMessage` mutation in `frontend/src/lib/query/hooks/useSendMessage.ts`
+- [x] T045 [US1] Build minimal chat UI in `frontend/src/components/chat/ChatPanel.tsx`, `frontend/src/components/chat/MessageInput.tsx`, `frontend/src/components/chat/MessageList.tsx`
+- [x] T046 [US1] Wire chat page shell in `frontend/src/app/page.tsx` and `frontend/src/app/layout.tsx`
 
 **Checkpoint**: MVP — user can submit a message and receive a routed, polished response
 
