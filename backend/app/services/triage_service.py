@@ -13,7 +13,7 @@ from app.logging import bind_log_context, clear_log_context, get_logger, log_ste
 from app.schemas.message import ErrorCode, TurnResponse, TurnStatus
 from app.schemas.session import Turn
 from app.schemas.triage import TriageMetadata
-from app.services.session_store import SessionNotFoundError, SqliteSessionStore
+from app.services.session_service import SessionNotFoundError, SessionService
 
 _ERROR_MESSAGE = "Sorry, we could not process your message. Please try again."
 
@@ -23,26 +23,44 @@ class TriageService:
 
     def __init__(
         self,
-        session_store: SqliteSessionStore,
+        session_service: SessionService,
         llm: BaseChatModel,
     ) -> None:
-        self._session_store = session_store
+        self._session_service = session_service
         self._pipeline = build_triage_pipeline(llm)
         self._logger = get_logger(__name__)
 
     def process_message(self, session_id: UUID, message: str) -> TurnResponse:
         """Analyze a customer message and return a polished assistant reply."""
-        # Fail fast before LLM work; append_turn re-validates on write.
-        session = self._session_store.require(session_id)
+        session = self._session_service.require(session_id)
 
         turn_id = uuid4()
         bind_log_context(session_id=str(session_id), turn_id=str(turn_id))
         try:
-            with log_step(self._logger, step="triage_pipeline"):
-                result = self._pipeline.invoke({"user_message": message})
+            try:
+                with log_step(self._logger, step="triage_pipeline"):
+                    result = self._pipeline.invoke({"user_message": message})
 
-            triage = require_triage(result)
-            final_response = result["final_response"]
+                triage = require_triage(result)
+                final_response = result["final_response"]
+            except SessionNotFoundError:
+                raise
+            except (KeyError, TypeError, ValueError):
+                raise
+            except Exception:
+                self._logger.exception("triage_pipeline_failed")
+                return TurnResponse(
+                    turn_id=turn_id,
+                    session_id=session_id,
+                    status=TurnStatus.ERROR,
+                    message=_ERROR_MESSAGE,
+                    triage=TriageMetadata.low_confidence_fallback(
+                        "Unable to analyze message.",
+                    ),
+                    error_code=ErrorCode.LLM_ERROR,
+                    next_actions=["retry"],
+                )
+
             turn = Turn(
                 id=turn_id,
                 user_message=message,
@@ -50,7 +68,7 @@ class TriageService:
                 triage=triage,
                 created_at=datetime.now(UTC),
             )
-            self._session_store.append_turn(session_id, turn, session=session)
+            self._session_service.append_turn(session_id, turn, session=session)
 
             return TurnResponse(
                 turn_id=turn_id,
@@ -58,23 +76,6 @@ class TriageService:
                 status=TurnStatus.SUCCESS,
                 message=final_response,
                 triage=triage,
-            )
-        except SessionNotFoundError:
-            raise
-        except (KeyError, TypeError, ValueError):
-            raise
-        except Exception:
-            self._logger.exception("triage_pipeline_failed")
-            return TurnResponse(
-                turn_id=turn_id,
-                session_id=session_id,
-                status=TurnStatus.ERROR,
-                message=_ERROR_MESSAGE,
-                triage=TriageMetadata.low_confidence_fallback(
-                    "Unable to analyze message.",
-                ),
-                error_code=ErrorCode.LLM_ERROR,
-                next_actions=["retry"],
             )
         finally:
             clear_log_context()

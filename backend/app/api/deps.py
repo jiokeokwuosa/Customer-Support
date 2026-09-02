@@ -1,7 +1,7 @@
-"""FastAPI dependency injection for settings, stores, and LLM clients.
+"""FastAPI dependency injection for settings, DB sessions, and LLM clients.
 
-Routes depend on these callables; tests swap implementations via the override
-hooks below or FastAPI's `app.dependency_overrides`.
+Routes depend on these callables; tests swap implementations via FastAPI's
+`app.dependency_overrides`.
 """
 
 from __future__ import annotations
@@ -12,58 +12,19 @@ from typing import Annotated
 from fastapi import Depends
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_openai import ChatOpenAI
+from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
-from app.db.engine import create_db_engine, create_session_factory, init_db
-from app.services.session_store import SqliteSessionStore
+from app.db.database import get_db
+from app.repositories.session_repository import SessionRepository
+from app.services.session_service import SessionService
+from app.services.triage_service import TriageService
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 ChatModelFactory = Callable[[Settings], BaseChatModel]
 
-_session_store: SqliteSessionStore | None = None
-_session_store_override: SqliteSessionStore | None = None
 _chat_model_factory_override: ChatModelFactory | None = None
-
-
-def override_session_store(store: SqliteSessionStore) -> None:
-    """Inject a test double for the session store dependency."""
-    global _session_store_override
-    _session_store_override = store
-
-
-def reset_cached_session_store() -> None:
-    """Close and drop the process-wide store instance."""
-    global _session_store
-    if _session_store is not None:
-        _session_store.close()
-        _session_store = None
-
-
-def reset_session_store_override() -> None:
-    """Clear the session store test override and close any cached instance."""
-    global _session_store_override
-    _session_store_override = None
-    reset_cached_session_store()
-
-
-def _create_session_store(database_path: str) -> SqliteSessionStore:
-    engine = create_db_engine(database_path)
-    init_db(engine)
-    return SqliteSessionStore(create_session_factory(engine))
-
-
-def get_session_store(settings: SettingsDep) -> SqliteSessionStore:
-    """Return a process-wide session store (one SQLite file per app process)."""
-    global _session_store
-    if _session_store_override is not None:
-        return _session_store_override
-    if _session_store is None:
-        _session_store = _create_session_store(settings.database_path)
-    return _session_store
-
-
-SessionStoreDep = Annotated[SqliteSessionStore, Depends(get_session_store)]
 
 
 def override_chat_model_factory(factory: ChatModelFactory) -> None:
@@ -94,3 +55,20 @@ def get_chat_model(settings: SettingsDep) -> BaseChatModel:
 
 
 ChatModelDep = Annotated[BaseChatModel, Depends(get_chat_model)]
+
+
+def get_session_service(db: Session = Depends(get_db)) -> SessionService:
+    return SessionService(SessionRepository(db))
+
+
+SessionServiceDep = Annotated[SessionService, Depends(get_session_service)]
+
+
+def get_triage_service(
+    session_service: SessionServiceDep,
+    llm: ChatModelDep,
+) -> TriageService:
+    return TriageService(session_service, llm)
+
+
+TriageServiceDep = Annotated[TriageService, Depends(get_triage_service)]

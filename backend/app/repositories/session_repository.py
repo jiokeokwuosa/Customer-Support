@@ -76,7 +76,7 @@ class SessionRepository:
             )
         )
         record.updated_at = updated_at
-        self._db.commit()
+        self._db.flush()
 
     def delete_session(self, session_id: UUID) -> None:
         record = self._db.get(SessionRecord, str(session_id))
@@ -105,4 +105,7 @@ class SessionRepository:
         ).all()
         for index, turn in enumerate(remaining):
             turn.position = index
+        self._db.flush()
+
+    def commit(self) -> None:
         self._db.commit()

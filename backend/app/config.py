@@ -7,7 +7,7 @@ reading `os.environ` directly so defaults and validation stay in one place.
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, computed_field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     chain_target_seconds: float = Field(default=30.0, gt=0)
     # Relative to the backend working directory unless absolute.
     database_path: str = Field(default="data/sessions.db")
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def database_url(self) -> str:
+        return f"sqlite:///{self.database_path}"
 
     @field_validator("cors_origins", mode="before")
     @classmethod
