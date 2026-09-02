@@ -54,15 +54,15 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T014 [P] Define `Session`, `Turn`, `CreateSessionResponse` in `backend/app/models/session.py`
 - [x] T015 [P] Mirror API types in `frontend/src/lib/api/types.ts` (TurnResponse, TriageMetadata, Citation, LookupResult, SamplePrompt)
 - [x] T016 Implement session persistence: SQLAlchemy ORM (`app/db/schema`), `SessionRepository`, `SqliteSessionStore`
-- [ ] T017 Create FastAPI app factory with CORS in `backend/app/main.py`
-- [ ] T018 Setup API router mount and v1 namespace in `backend/app/api/v1/router.py`
-- [ ] T019 Implement dependency injection module in `backend/app/api/deps.py` (settings, session store, LLM factory with test override hook)
-- [ ] T020 [P] Implement health endpoints in `backend/app/api/v1/health.py` (`GET /health`, `GET /ready`)
-- [ ] T021 [P] Implement typed API client in `frontend/src/lib/api/client.ts` (base URL, fetch wrapper, error parsing)
-- [ ] T022 [P] Setup TanStack Query provider and query keys in `frontend/src/lib/query/keys.ts` and `frontend/src/app/providers.tsx`
-- [ ] T023 [P] Create shared UI primitives in `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Card.tsx`, `frontend/src/components/ui/StatusMessage.tsx`
-- [ ] T024 Configure Tailwind theme tokens in `frontend/tailwind.config.ts` and `frontend/src/app/globals.css` (professional support palette)
-- [ ] T025 Add structured logging helper in `backend/app/logging.py` (session_id, turn_id, step, latency_ms)
+- [x] T017 Create FastAPI app factory with CORS in `backend/app/main.py`
+- [x] T018 Setup API router mount and v1 namespace in `backend/app/api/v1/router.py`
+- [x] T019 Implement dependency injection module in `backend/app/api/deps.py` (settings, session store, LLM factory with test override hook)
+- [x] T020 [P] Implement health endpoints in `backend/app/api/v1/health.py` (`GET /health`, `GET /ready`)
+- [x] T021 [P] Implement typed API client in `frontend/src/lib/api/client.ts` (base URL, fetch wrapper, error parsing)
+- [x] T022 [P] Setup TanStack Query provider and query keys in `frontend/src/lib/query/keys.ts` and `frontend/src/app/providers.tsx`
+- [x] T023 [P] Create shared UI primitives in `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Card.tsx`, `frontend/src/components/ui/StatusMessage.tsx`
+- [x] T024 Configure Tailwind theme tokens in `frontend/tailwind.config.ts` and `frontend/src/app/globals.css` (professional support palette)
+- [x] T025 Add structured logging helper in `backend/app/logging.py` (session_id, turn_id, step, latency_ms)
 
 **Checkpoint**: Foundation ready — user story phases may begin
 
