@@ -1,6 +1,6 @@
 # Customer Support
 
-Full-stack LangChain application that triages incoming support messages and drafts tailored responses. Built as a learning portfolio project that exercises core intelligent-automation patterns while delivering a real support-agent workflow.
+Full-stack LangChain application that triages incoming support messages and drafts tailored responses.
 
 ## What it does
 
