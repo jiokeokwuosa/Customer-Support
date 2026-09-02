@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from app.llm.chains.pipeline import build_triage_pipeline
+from app.llm.chains.state import require_triage
 from app.logging import bind_log_context, clear_log_context, get_logger, log_step
 from app.schemas.message import ErrorCode, TurnResponse, TurnStatus
 from app.schemas.session import Turn
@@ -31,8 +32,8 @@ class TriageService:
 
     def process_message(self, session_id: UUID, message: str) -> TurnResponse:
         """Analyze a customer message and return a polished assistant reply."""
-        if self._session_store.get(session_id) is None:
-            raise SessionNotFoundError(session_id)
+        # Fail fast before LLM work; append_turn re-validates on write.
+        session = self._session_store.require(session_id)
 
         turn_id = uuid4()
         bind_log_context(session_id=str(session_id), turn_id=str(turn_id))
@@ -40,11 +41,7 @@ class TriageService:
             with log_step(self._logger, step="triage_pipeline"):
                 result = self._pipeline.invoke({"user_message": message})
 
-            triage = result["triage"]
-            if not isinstance(triage, TriageMetadata):
-                msg = "pipeline must return TriageMetadata in triage"
-                raise TypeError(msg)
-
+            triage = require_triage(result)
             final_response = result["final_response"]
             turn = Turn(
                 id=turn_id,
@@ -53,7 +50,7 @@ class TriageService:
                 triage=triage,
                 created_at=datetime.now(UTC),
             )
-            self._session_store.append_turn(session_id, turn)
+            self._session_store.append_turn(session_id, turn, session=session)
 
             return TurnResponse(
                 turn_id=turn_id,
@@ -63,6 +60,8 @@ class TriageService:
                 triage=triage,
             )
         except SessionNotFoundError:
+            raise
+        except (KeyError, TypeError, ValueError):
             raise
         except Exception:
             self._logger.exception("triage_pipeline_failed")

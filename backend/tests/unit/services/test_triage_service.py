@@ -3,50 +3,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from langchain_community.chat_models.fake import FakeListChatModel
 from langchain_core.runnables import RunnableLambda
+from tests.helpers.fake_llm import failing_structured_output_llm, pipeline_fake_llm
 
-from app.llm.chains.classification.sentiment_urgency import SentimentUrgencyOutput
-from app.llm.chains.classification.topic_classifier import TopicClassificationOutput
 from app.schemas.message import ErrorCode, TurnStatus
 from app.schemas.triage import SentimentLabel, TopicCategory, UrgencyLevel
 from app.services.session_store import SessionNotFoundError, SqliteSessionStore
 from app.services.triage_service import TriageService
-
-
-def _structured_output_factory(model: type) -> RunnableLambda:
-    if model is SentimentUrgencyOutput:
-        return RunnableLambda(
-            lambda _: SentimentUrgencyOutput(
-                sentiment=SentimentLabel.FRUSTRATED,
-                urgency=UrgencyLevel.HIGH,
-            )
-        )
-    if model is TopicClassificationOutput:
-        return RunnableLambda(
-            lambda _: TopicClassificationOutput(
-                topic=TopicCategory.BILLING,
-                rationale="Customer reports duplicate billing charge.",
-            )
-        )
-    msg = f"Unexpected structured output model: {model}"
-    raise ValueError(msg)
-
-
-def _pipeline_fake_llm() -> FakeListChatModel:
-    llm = FakeListChatModel(
-        responses=["Billing draft reply.", "Polished billing reply."]
-    )
-    object.__setattr__(
-        llm,
-        "with_structured_output",
-        MagicMock(side_effect=_structured_output_factory),
-    )
-    return llm
 
 
 @pytest.fixture
@@ -60,7 +26,7 @@ def test_process_message_returns_turn_response_and_persists_turn(
     store: SqliteSessionStore,
 ) -> None:
     session = store.create()
-    service = TriageService(store, _pipeline_fake_llm())
+    service = TriageService(store, pipeline_fake_llm())
 
     response = service.process_message(
         session.id,
@@ -84,7 +50,7 @@ def test_process_message_returns_turn_response_and_persists_turn(
 def test_process_message_raises_for_unknown_session(
     store: SqliteSessionStore,
 ) -> None:
-    service = TriageService(store, _pipeline_fake_llm())
+    service = TriageService(store, pipeline_fake_llm())
 
     with pytest.raises(SessionNotFoundError):
         service.process_message(uuid4(), "Hello")
@@ -94,17 +60,7 @@ def test_process_message_returns_error_response_when_pipeline_fails(
     store: SqliteSessionStore,
 ) -> None:
     session = store.create()
-    llm = FakeListChatModel(responses=["unused", "unused"])
-    object.__setattr__(
-        llm,
-        "with_structured_output",
-        MagicMock(
-            return_value=RunnableLambda(
-                lambda _: (_ for _ in ()).throw(RuntimeError("LLM unavailable"))
-            )
-        ),
-    )
-    service = TriageService(store, llm)
+    service = TriageService(store, failing_structured_output_llm())
 
     response = service.process_message(session.id, "Help me")
 
@@ -116,3 +72,17 @@ def test_process_message_returns_error_response_when_pipeline_fails(
     updated = store.get(session.id)
     assert updated is not None
     assert updated.turns == []
+
+
+def test_process_message_propagates_pipeline_contract_errors(
+    store: SqliteSessionStore,
+) -> None:
+    session = store.create()
+    broken_pipeline = RunnableLambda(
+        lambda _: {"triage": "not-metadata", "final_response": "x"}
+    )
+    service = TriageService(store, pipeline_fake_llm())
+    service._pipeline = broken_pipeline
+
+    with pytest.raises(TypeError, match="triage must be TriageMetadata"):
+        service.process_message(session.id, "Help me")

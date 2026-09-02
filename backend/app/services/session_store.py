@@ -64,14 +64,33 @@ class SqliteSessionStore:
         with self._repository() as repo:
             return repo.get_session(session_id)
 
-    def append_turn(self, session_id: UUID, turn: Turn) -> Session:
+    def require(self, session_id: UUID) -> Session:
+        """Return a session or raise SessionNotFoundError."""
+        session = self.get(session_id)
+        if session is None:
+            raise SessionNotFoundError(session_id)
+        return session
+
+    def append_turn(
+        self,
+        session_id: UUID,
+        turn: Turn,
+        *,
+        session: Session | None = None,
+    ) -> Session:
         """Add one completed exchange; keep only the newest 20 turns."""
         with self._repository() as repo:
-            session = repo.get_session(session_id)
-            if session is None:
-                raise SessionNotFoundError(session_id)
+            if session is not None:
+                if session.id != session_id:
+                    msg = "session id mismatch"
+                    raise ValueError(msg)
+                position = len(session.turns)
+            else:
+                loaded = repo.get_session(session_id)
+                if loaded is None:
+                    raise SessionNotFoundError(session_id)
+                position = len(loaded.turns)
 
-            position = len(session.turns)
             repo.insert_turn(
                 session_id,
                 turn,

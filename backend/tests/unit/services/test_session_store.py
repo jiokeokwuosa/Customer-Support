@@ -73,6 +73,16 @@ def test_get_unknown_session_returns_none(store: SqliteSessionStore) -> None:
     assert store.get(uuid4()) is None
 
 
+def test_require_unknown_session_raises(store: SqliteSessionStore) -> None:
+    with pytest.raises(SessionNotFoundError):
+        store.require(uuid4())
+
+
+def test_require_returns_existing_session(store: SqliteSessionStore) -> None:
+    session = store.create()
+    assert store.require(session.id).id == session.id
+
+
 def test_append_turn_persists_across_reload(tmp_path: Path) -> None:
     db_path = tmp_path / "sessions.db"
     store = SqliteSessionStore(db_path)
