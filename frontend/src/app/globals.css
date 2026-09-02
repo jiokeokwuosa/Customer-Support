@@ -64,8 +64,11 @@
     --primary-subtle: #1e3a5f;
     --border: #334155;
     --border-strong: #475569;
+    --success: #4ade80;
     --success-subtle: #14532d;
+    --warning: #fbbf24;
     --warning-subtle: #78350f;
+    --danger: #f87171;
     --danger-subtle: #7f1d1d;
   }
 }
