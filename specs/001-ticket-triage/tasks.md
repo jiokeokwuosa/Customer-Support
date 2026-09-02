@@ -98,7 +98,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T042 [US1] Implement sync message endpoint in `backend/app/api/v1/messages.py` (POST `/messages`)
 - [x] T043 [P] [US1] Implement `useSession` hook in `frontend/src/lib/query/hooks/useSession.ts`
 - [x] T044 [P] [US1] Implement `useSendMessage` mutation in `frontend/src/lib/query/hooks/useSendMessage.ts`
-- [ ] T045 [US1] Build minimal chat UI in `frontend/src/components/chat/ChatPanel.tsx`, `frontend/src/components/chat/MessageInput.tsx`, `frontend/src/components/chat/MessageList.tsx`
+- [x] T045 [US1] Build minimal chat UI in `frontend/src/components/chat/ChatPanel.tsx`, `frontend/src/components/chat/MessageInput.tsx`, `frontend/src/components/chat/MessageList.tsx`
 - [ ] T046 [US1] Wire chat page shell in `frontend/src/app/page.tsx` and `frontend/src/app/layout.tsx`
 
 **Checkpoint**: MVP — user can submit a message and receive a routed, polished response
