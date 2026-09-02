@@ -94,7 +94,7 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 - [x] T038 [US1] Implement tone polish chain in `backend/app/llm/chains/refinement/tone_polish.py`
 - [x] T039 [US1] Compose LCEL pipeline (RunnableParallel → draft → polish) in `backend/app/llm/chains/pipeline.py`
 - [x] T040 [US1] Implement `TriageService` orchestrator in `backend/app/services/triage_service.py`
-- [ ] T041 [US1] Implement session endpoints in `backend/app/api/v1/sessions.py` (POST create, DELETE reset)
+- [x] T041 [US1] Implement session endpoints in `backend/app/api/v1/sessions.py` (POST create, DELETE reset)
 - [ ] T042 [US1] Implement sync message endpoint in `backend/app/api/v1/messages.py` (POST `/messages`)
 - [ ] T043 [P] [US1] Implement `useSession` hook in `frontend/src/lib/query/hooks/useSession.ts`
 - [ ] T044 [P] [US1] Implement `useSendMessage` mutation in `frontend/src/lib/query/hooks/useSendMessage.ts`
