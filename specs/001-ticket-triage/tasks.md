@@ -135,13 +135,13 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Tests for User Story 3
 
-- [ ] T053 [P] [US3] Unit test session store turn append/trim in `backend/tests/unit/services/test_session_store.py`
-- [ ] T054 [P] [US3] Integration test multi-turn context in `backend/tests/integration/test_session_memory.py` (mocked LLM)
+- [x] T053 [P] [US3] Unit test session store turn append/trim in `backend/tests/unit/services/test_session_service.py`
+- [x] T054 [P] [US3] Integration test multi-turn context in `backend/tests/integration/test_session_memory.py` (mocked LLM)
 
 ### Implementation for User Story 3
 
-- [ ] T055 [US3] Load conversation history into pipeline state in `backend/app/services/triage_service.py`
-- [ ] T056 [US3] Add `MessagesPlaceholder` history to draft and polish prompts in `backend/app/llm/prompts/drafts.py` and `backend/app/llm/prompts/refinement.py`
+- [x] T055 [US3] Load conversation history into pipeline state in `backend/app/services/triage_service.py`
+- [x] T056 [US3] Add `MessagesPlaceholder` history to draft and polish prompts in `backend/app/llm/prompts/drafts.py` and `backend/app/llm/prompts/refinement.py`
 - [x] T057 [US3] Implement turn trimming (max 20) in `backend/app/services/session_store.py`
 - [ ] T058 [US3] Add "New conversation" control in `frontend/src/components/chat/ChatPanel.tsx` calling session reset/create
 - [ ] T059 [US3] Update `frontend/src/lib/query/hooks/useSession.ts` to handle reset and session id rotation

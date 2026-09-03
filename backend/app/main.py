@@ -20,8 +20,8 @@ from app.api.v1.router import router as v1_router
 from app.config import Settings, get_settings
 from app.db.database import init_db
 from app.db.database import settings as db_settings
+from app.exceptions import SessionNotFoundError
 from app.schemas.message import ErrorCode, ErrorResponse
-from app.services.session_service import SessionNotFoundError
 
 
 @asynccontextmanager

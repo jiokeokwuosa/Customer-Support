@@ -36,6 +36,7 @@ def _attach_triage_info(state: dict[str, Any]) -> dict[str, Any]:
     )
     return {
         "user_message": state["user_message"],
+        "history": state.get("history", []),
         "triage": triage,
     }
 
