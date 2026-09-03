@@ -113,13 +113,13 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Tests for User Story 2
 
-- [ ] T047 [P] [US2] Contract test TurnResponse triage fields in `backend/tests/contract/test_turn_response_schema.py`
-- [ ] T048 [P] [US2] Component test TriageBadge rendering in `frontend/tests/components/TriageBadge.test.tsx`
+- [x] T047 [P] [US2] Contract test TurnResponse triage fields in `backend/tests/contract/test_turn_response_schema.py`
+- [x] T048 [P] [US2] Component test TriageBadge rendering in `frontend/tests/components/TriageBadge.test.tsx`
 
 ### Implementation for User Story 2
 
 - [ ] T049 [US2] Ensure pipeline populates `rationale` in `backend/app/llm/chains/classification/topic_classifier.py` and merges in `backend/app/services/triage_service.py`
-- [ ] T050 [US2] Implement `TriageBadge` component in `frontend/src/components/chat/TriageBadge.tsx` (topic, sentiment, urgency, rationale)
+- [x] T050 [US2] Implement `TriageBadge` component in `frontend/src/components/chat/TriageBadge.tsx` (topic, sentiment, urgency, rationale)
 - [ ] T051 [US2] Integrate triage display into `frontend/src/components/chat/MessageList.tsx` per assistant turn
 - [ ] T052 [US2] Add triage-focused layout styling in `frontend/src/components/chat/ChatPanel.tsx` (metadata column / badges row)
 
