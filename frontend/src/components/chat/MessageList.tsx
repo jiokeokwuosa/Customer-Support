@@ -1,5 +1,6 @@
 "use client";
 
+import { TriageBadge } from "@/components/chat/TriageBadge";
 import type { TurnResponse } from "@/lib/api/types";
 
 export type ChatTurn = {
@@ -28,13 +29,16 @@ export function MessageList({ turns }: MessageListProps) {
         <li
           key={turn.id}
           className={[
-            "max-w-[85%] rounded-card px-4 py-3 text-sm",
+            "rounded-card px-4 py-3 text-sm",
             turn.role === "user"
-              ? "ml-auto bg-primary text-white"
-              : "bg-surface-elevated text-ink border border-border",
+              ? "ml-auto max-w-[85%] bg-primary text-white"
+              : "mr-auto w-full max-w-[92%] border border-border bg-surface-elevated text-ink",
           ].join(" ")}
         >
-          {turn.content}
+          <p>{turn.content}</p>
+          {turn.role === "assistant" && turn.triage ? (
+            <TriageBadge triage={turn.triage} />
+          ) : null}
         </li>
       ))}
     </ul>

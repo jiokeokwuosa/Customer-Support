@@ -42,6 +42,7 @@ class TriageService:
                     result = self._pipeline.invoke({"user_message": message})
 
                 triage = require_triage(result)
+                # Rationale comes from the topic classifier via pipeline merge.
                 final_response = result["final_response"]
             except SessionNotFoundError:
                 raise

@@ -4,24 +4,32 @@ type TriageBadgeProps = {
   triage: TriageMetadata;
 };
 
+const badgeClass =
+  "inline-flex items-center gap-1 rounded-button border border-border bg-surface px-2 py-1";
+
 export function TriageBadge({ triage }: TriageBadgeProps) {
   return (
-    <dl className="mt-2 flex flex-wrap gap-2 text-xs text-ink-muted">
-      <div className="rounded-button border border-border bg-surface-elevated px-2 py-1">
-        <dt className="sr-only">Topic</dt>
-        <dd>{triage.topic}</dd>
+    <dl
+      className="mt-3 flex flex-col gap-2 border-t border-border pt-3 text-xs"
+      aria-label="Triage metadata"
+    >
+      <div className="flex flex-wrap gap-2">
+        <div className={badgeClass}>
+          <dt className="font-medium text-ink-subtle">Topic</dt>
+          <dd className="capitalize text-ink">{triage.topic}</dd>
+        </div>
+        <div className={badgeClass}>
+          <dt className="font-medium text-ink-subtle">Sentiment</dt>
+          <dd className="capitalize text-ink">{triage.sentiment}</dd>
+        </div>
+        <div className={badgeClass}>
+          <dt className="font-medium text-ink-subtle">Urgency</dt>
+          <dd className="capitalize text-ink">{triage.urgency}</dd>
+        </div>
       </div>
-      <div className="rounded-button border border-border bg-surface-elevated px-2 py-1">
-        <dt className="sr-only">Sentiment</dt>
-        <dd>{triage.sentiment}</dd>
-      </div>
-      <div className="rounded-button border border-border bg-surface-elevated px-2 py-1">
-        <dt className="sr-only">Urgency</dt>
-        <dd>{triage.urgency}</dd>
-      </div>
-      <div className="w-full rounded-button border border-border bg-surface-elevated px-2 py-1">
-        <dt className="sr-only">Rationale</dt>
-        <dd>{triage.rationale}</dd>
+      <div className={`${badgeClass} w-full`}>
+        <dt className="shrink-0 font-medium text-ink-subtle">Rationale</dt>
+        <dd className="text-ink-muted">{triage.rationale}</dd>
       </div>
     </dl>
   );
