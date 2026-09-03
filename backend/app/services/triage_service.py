@@ -7,13 +7,15 @@ from uuid import UUID, uuid4
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
+from app.exceptions import SessionNotFoundError
 from app.llm.chains.pipeline import build_triage_pipeline
-from app.llm.chains.state import require_triage
+from app.llm.utils.history import turns_to_history
+from app.llm.utils.state import require_triage
 from app.logging import bind_log_context, clear_log_context, get_logger, log_step
 from app.schemas.message import ErrorCode, TurnResponse, TurnStatus
 from app.schemas.session import Turn
 from app.schemas.triage import TriageMetadata
-from app.services.session_service import SessionNotFoundError, SessionService
+from app.services.session_service import SessionService
 
 _ERROR_MESSAGE = "Sorry, we could not process your message. Please try again."
 
@@ -39,7 +41,12 @@ class TriageService:
         try:
             try:
                 with log_step(self._logger, step="triage_pipeline"):
-                    result = self._pipeline.invoke({"user_message": message})
+                    result = self._pipeline.invoke(
+                        {
+                            "user_message": message,
+                            "history": turns_to_history(session.turns),
+                        }
+                    )
 
                 triage = require_triage(result)
                 # Rationale comes from the topic classifier via pipeline merge.

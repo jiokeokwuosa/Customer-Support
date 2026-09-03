@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.db.database import SessionLocal
+from app.exceptions import SessionNotFoundError
 from app.repositories.session_repository import SessionRepository
 from app.schemas.message import Citation, LookupResult, LookupType
 from app.schemas.session import Turn
@@ -13,7 +14,7 @@ from app.schemas.triage import (
     TriageMetadata,
     UrgencyLevel,
 )
-from app.services.session_service import SessionNotFoundError, SessionService
+from app.services.session_service import SessionService
 
 
 @pytest.fixture
@@ -125,3 +126,33 @@ def test_append_turn_trims_to_max_twenty(service: SessionService) -> None:
     assert stored is not None
     assert len(stored.turns) == 20
     assert all(turn.id != first.id for turn in stored.turns)
+
+
+def test_append_turn_keeps_newest_twenty_in_order(service: SessionService) -> None:
+    """VR-003: after overflow, retained turns are the latest 20 in FIFO order."""
+    session = service.create()
+    turn_ids: list[UUID] = []
+
+    for _ in range(25):
+        turn = _sample_turn()
+        turn_ids.append(turn.id)
+        service.append_turn(session.id, turn)
+
+    stored = service.get(session.id)
+    assert stored is not None
+    assert [turn.id for turn in stored.turns] == turn_ids[-20:]
+
+
+def test_append_exactly_twenty_turns_does_not_drop_any(service: SessionService) -> None:
+    session = service.create()
+    turn_ids: list[UUID] = []
+
+    for _ in range(20):
+        turn = _sample_turn()
+        turn_ids.append(turn.id)
+        service.append_turn(session.id, turn)
+
+    stored = service.get(session.id)
+    assert stored is not None
+    assert len(stored.turns) == 20
+    assert [turn.id for turn in stored.turns] == turn_ids

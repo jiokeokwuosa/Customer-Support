@@ -8,9 +8,10 @@ import pytest
 from langchain_core.runnables import RunnableLambda
 from tests.helpers.fake_llm import failing_structured_output_llm, pipeline_fake_llm
 
+from app.exceptions import SessionNotFoundError
 from app.schemas.message import ErrorCode, TurnStatus
 from app.schemas.triage import SentimentLabel, TopicCategory, UrgencyLevel
-from app.services.session_service import SessionNotFoundError, SessionService
+from app.services.session_service import SessionService
 from app.services.triage_service import TriageService
 
 

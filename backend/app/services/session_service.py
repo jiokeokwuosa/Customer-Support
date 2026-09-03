@@ -5,19 +5,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
+from app.exceptions import SessionNotFoundError
 from app.repositories.session_repository import SessionRepository
 from app.schemas.session import Session, Turn
 
 # Matches Session.turns max_length / product memory cap (spec VR-003).
 MAX_SESSION_TURNS = 20
-
-
-class SessionNotFoundError(KeyError):
-    """Raised when a session_id is unknown."""
-
-    def __init__(self, session_id: UUID) -> None:
-        self.session_id = session_id
-        super().__init__(f"Session not found: {session_id}")
 
 
 class SessionService:
