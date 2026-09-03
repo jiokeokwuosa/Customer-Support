@@ -31,12 +31,14 @@ def test_process_message_returns_turn_response_and_persists_turn(
     assert response.triage.topic == TopicCategory.BILLING
     assert response.triage.sentiment == SentimentLabel.FRUSTRATED
     assert response.triage.urgency == UrgencyLevel.HIGH
+    assert "duplicate billing" in response.triage.rationale
     assert response.error_code is None
 
     updated = session_service.get(session.id)
     assert updated is not None
     assert len(updated.turns) == 1
     assert updated.turns[0].assistant_message == "Polished billing reply."
+    assert "duplicate billing" in updated.turns[0].triage.rationale
 
 
 def test_process_message_raises_for_unknown_session(

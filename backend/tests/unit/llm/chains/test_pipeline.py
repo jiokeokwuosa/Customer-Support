@@ -54,3 +54,4 @@ def test_attach_triage_info_adds_merged_metadata_to_state() -> None:
     assert "topic" not in result
     assert isinstance(result["triage"], TriageMetadata)
     assert result["triage"].topic == TopicCategory.BILLING
+    assert result["triage"].rationale == "Customer reports duplicate billing charge."
