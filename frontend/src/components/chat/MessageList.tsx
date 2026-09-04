@@ -1,13 +1,15 @@
 "use client";
 
+import { CitationList } from "@/components/chat/CitationList";
 import { TriageBadge } from "@/components/chat/TriageBadge";
-import type { TurnResponse } from "@/lib/api/types";
+import type { Citation, TurnResponse } from "@/lib/api/types";
 
 export type ChatTurn = {
   id: string;
   role: "user" | "assistant";
   content: string;
   triage?: TurnResponse["triage"];
+  citations?: Citation[];
 };
 
 type MessageListProps = {
@@ -38,6 +40,9 @@ export function MessageList({ turns }: MessageListProps) {
           <p>{turn.content}</p>
           {turn.role === "assistant" && turn.triage ? (
             <TriageBadge triage={turn.triage} />
+          ) : null}
+          {turn.role === "assistant" && turn.citations?.length ? (
+            <CitationList citations={turn.citations} />
           ) : null}
         </li>
       ))}

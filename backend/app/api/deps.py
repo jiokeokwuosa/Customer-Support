@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db.database import get_db
 from app.repositories.session_repository import SessionRepository
+from app.retrieval.index import get_knowledge_index
 from app.services.session_service import SessionService
 from app.services.triage_service import TriageService
 
@@ -68,7 +69,11 @@ def get_triage_service(
     session_service: SessionServiceDep,
     llm: ChatModelDep,
 ) -> TriageService:
-    return TriageService(session_service, llm)
+    return TriageService(
+        session_service,
+        llm,
+        knowledge_index=get_knowledge_index(),
+    )
 
 
 TriageServiceDep = Annotated[TriageService, Depends(get_triage_service)]

@@ -21,13 +21,25 @@ from app.config import Settings, get_settings
 from app.db.database import init_db
 from app.db.database import settings as db_settings
 from app.exceptions import SessionNotFoundError
+from app.logging import get_logger
+from app.retrieval.index import init_knowledge_index, set_knowledge_index
 from app.schemas.message import ErrorCode, ErrorResponse
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Startup/shutdown hook — extend when wiring stores and retrievers."""
+    """Load the knowledge index at startup; leave unloaded on failure."""
+    from app.retrieval.index import get_knowledge_index
+
+    logger = get_logger(__name__)
+    if get_knowledge_index() is None:
+        try:
+            init_knowledge_index(get_settings())
+        except Exception:
+            logger.exception("knowledge_index_init_failed")
+            set_knowledge_index(None)
     yield
+    set_knowledge_index(None)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

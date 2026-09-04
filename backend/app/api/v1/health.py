@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from app.retrieval.index import get_knowledge_index
 from app.schemas.health import HealthResponse, HealthStatus, ReadyResponse, ReadyStatus
 
 router = APIRouter(tags=["health"])
@@ -15,5 +16,7 @@ def health_check() -> HealthResponse:
 
 @router.get("/ready")
 def readiness_check() -> ReadyResponse:
-    """Accept traffic; knowledge index status comes in T068."""
-    return ReadyResponse(status=ReadyStatus.READY, knowledge_loaded=False)
+    """Accept traffic when the process is up; report knowledge index status."""
+    index = get_knowledge_index()
+    loaded = index is not None and index.is_loaded
+    return ReadyResponse(status=ReadyStatus.READY, knowledge_loaded=loaded)

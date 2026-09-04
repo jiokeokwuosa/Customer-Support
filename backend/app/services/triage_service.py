@@ -12,7 +12,8 @@ from app.llm.chains.pipeline import build_triage_pipeline
 from app.llm.utils.history import turns_to_history
 from app.llm.utils.state import require_triage
 from app.logging import bind_log_context, clear_log_context, get_logger, log_step
-from app.schemas.message import ErrorCode, TurnResponse, TurnStatus
+from app.retrieval.retriever import KnowledgeIndex
+from app.schemas.message import Citation, ErrorCode, TurnResponse, TurnStatus
 from app.schemas.session import Turn
 from app.schemas.triage import TriageMetadata
 from app.services.session_service import SessionService
@@ -27,9 +28,10 @@ class TriageService:
         self,
         session_service: SessionService,
         llm: BaseChatModel,
+        knowledge_index: KnowledgeIndex | None = None,
     ) -> None:
         self._session_service = session_service
-        self._pipeline = build_triage_pipeline(llm)
+        self._pipeline = build_triage_pipeline(llm, knowledge_index=knowledge_index)
         self._logger = get_logger(__name__)
 
     def process_message(self, session_id: UUID, message: str) -> TurnResponse:
@@ -49,8 +51,8 @@ class TriageService:
                     )
 
                 triage = require_triage(result)
-                # Rationale comes from the topic classifier via pipeline merge.
                 final_response = result["final_response"]
+                citations = _coerce_citations(result.get("citations", []))
             except SessionNotFoundError:
                 raise
             except (KeyError, TypeError, ValueError):
@@ -74,6 +76,7 @@ class TriageService:
                 user_message=message,
                 assistant_message=final_response,
                 triage=triage,
+                citations=citations,
                 created_at=datetime.now(UTC),
             )
             self._session_service.append_turn(session_id, turn, session=session)
@@ -84,6 +87,17 @@ class TriageService:
                 status=TurnStatus.SUCCESS,
                 message=final_response,
                 triage=triage,
+                citations=citations,
             )
         finally:
             clear_log_context()
+
+
+def _coerce_citations(raw: object) -> list[Citation]:
+    if not isinstance(raw, list):
+        return []
+    citations: list[Citation] = []
+    for item in raw:
+        if isinstance(item, Citation):
+            citations.append(item)
+    return citations
