@@ -17,6 +17,7 @@ def _draft_input(state: dict[str, Any]) -> dict[str, Any]:
     return {
         "user_message": state["user_message"],
         "history": state.get("history", []),
+        "knowledge_context": state.get("knowledge_context") or "",
         "topic": triage.topic.value,
         "sentiment": triage.sentiment.value,
         "urgency": triage.urgency.value,

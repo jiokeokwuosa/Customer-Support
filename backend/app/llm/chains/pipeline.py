@@ -1,4 +1,4 @@
-"""Full triage pipeline: parallel triage → draft → tone polish."""
+"""Full triage pipeline: parallel triage → optional RAG → draft → tone polish."""
 
 from __future__ import annotations
 
@@ -13,6 +13,12 @@ from app.llm.chains.classification.sentiment_urgency import (
 from app.llm.chains.classification.topic_classifier import build_topic_classifier_chain
 from app.llm.chains.drafts.draft import build_draft_chain
 from app.llm.chains.refinement.tone_polish import build_tone_polish_chain
+from app.retrieval.retriever import (
+    KnowledgeIndex,
+    documents_to_citations,
+    format_knowledge_context,
+    needs_retrieval,
+)
 from app.schemas.triage import TriageMetadata
 
 
@@ -41,8 +47,12 @@ def _attach_triage_info(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_triage_pipeline(llm: BaseChatModel) -> Runnable:
-    """Compose RunnableParallel → merge triage → draft → polish."""
+def build_triage_pipeline(
+    llm: BaseChatModel,
+    *,
+    knowledge_index: KnowledgeIndex | None = None,
+) -> Runnable:
+    """Compose RunnableParallel → merge triage → optional RAG → draft → polish."""
     triage_parallel = RunnableParallel(
         sentiment_urgency=build_sentiment_urgency_chain(llm),
         topic=build_topic_classifier_chain(llm),
@@ -53,6 +63,20 @@ def build_triage_pipeline(llm: BaseChatModel) -> Runnable:
     def run_triage(state: dict[str, Any]) -> dict[str, Any]:
         return {**state, **triage_parallel.invoke(state)}
 
+    def attach_retrieval(state: dict[str, Any]) -> dict[str, Any]:
+        if knowledge_index is None or not needs_retrieval(state["user_message"]):
+            return {
+                **state,
+                "citations": [],
+                "knowledge_context": "",
+            }
+        docs = knowledge_index.retrieve(state["user_message"])
+        return {
+            **state,
+            "citations": documents_to_citations(docs),
+            "knowledge_context": format_knowledge_context(docs),
+        }
+
     def attach_draft(state: dict[str, Any]) -> dict[str, Any]:
         return {**state, "topic_draft": draft.invoke(state)}
 
@@ -62,6 +86,7 @@ def build_triage_pipeline(llm: BaseChatModel) -> Runnable:
     return (
         RunnableLambda(run_triage)
         | RunnableLambda(_attach_triage_info)
+        | RunnableLambda(attach_retrieval)
         | RunnableLambda(attach_draft)
         | RunnableLambda(attach_polish)
     )

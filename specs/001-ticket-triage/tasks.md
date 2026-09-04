@@ -158,20 +158,20 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Tests for User Story 4
 
-- [ ] T060 [P] [US4] Unit test knowledge loader in `backend/tests/unit/retrieval/test_loader.py`
-- [ ] T061 [P] [US4] Unit test retriever scoring/threshold in `backend/tests/unit/retrieval/test_retriever.py`
-- [ ] T062 [P] [US4] Integration test citation population in `backend/tests/integration/test_rag_citations.py` (mocked embeddings/LLM)
+- [x] T060 [P] [US4] Unit test knowledge loader in `backend/tests/unit/retrieval/test_loader.py`
+- [x] T061 [P] [US4] Unit test retriever scoring/threshold in `backend/tests/unit/retrieval/test_retriever.py`
+- [x] T062 [P] [US4] Integration test citation population in `backend/tests/integration/test_rag_citations.py` (mocked embeddings/LLM)
 
 ### Implementation for User Story 4
 
-- [ ] T063 [P] [US4] Add bundled FAQ/policy markdown files in `backend/data/knowledge/` (refunds, returns, password reset, billing cycle)
-- [ ] T064 [US4] Implement document loader in `backend/app/retrieval/loader.py`
-- [ ] T065 [US4] Implement Chroma retriever factory in `backend/app/retrieval/retriever.py`
-- [ ] T066 [US4] Wire retrieval into pipeline when policy intent detected in `backend/app/llm/chains/pipeline.py`
-- [ ] T067 [US4] Map retrieved chunks to `Citation` models in `backend/app/services/triage_service.py`
-- [ ] T068 [US4] Update `/ready` to reflect knowledge index status in `backend/app/api/v1/health.py`
-- [ ] T069 [US4] Implement `CitationList` component in `frontend/src/components/chat/CitationList.tsx`
-- [ ] T070 [US4] Integrate citations into `frontend/src/components/chat/MessageList.tsx`
+- [x] T063 [P] [US4] Add bundled FAQ/policy markdown files in `backend/data/knowledge/` (refunds, returns, password reset, billing cycle)
+- [x] T064 [US4] Implement document loader in `backend/app/retrieval/loader.py`
+- [x] T065 [US4] Implement Chroma retriever factory in `backend/app/retrieval/retriever.py`
+- [x] T066 [US4] Wire retrieval into pipeline when policy intent detected in `backend/app/llm/chains/pipeline.py`
+- [x] T067 [US4] Map retrieved chunks to `Citation` models in `backend/app/services/triage_service.py`
+- [x] T068 [US4] Update `/ready` to reflect knowledge index status in `backend/app/api/v1/health.py`
+- [x] T069 [US4] Implement `CitationList` component in `frontend/src/components/chat/CitationList.tsx`
+- [x] T070 [US4] Integrate citations into `frontend/src/components/chat/MessageList.tsx`
 
 **Checkpoint**: Policy questions grounded with visible citations
 

@@ -46,4 +46,29 @@ describe("MessageList", () => {
 
     expect(screen.queryByLabelText("Triage metadata")).not.toBeInTheDocument();
   });
+
+  it("shows citations under assistant turns when present", () => {
+    render(
+      <MessageList
+        turns={[
+          {
+            id: "a1",
+            role: "assistant",
+            content: "Refunds are available within 14 days.",
+            triage,
+            citations: [
+              {
+                source_id: "faq-refunds",
+                title: "Digital Product Refunds",
+                excerpt: "Refunds for digital products are available within 14 days.",
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByLabelText("Citations")).toBeInTheDocument();
+    expect(screen.getByText("Digital Product Refunds")).toBeInTheDocument();
+  });
 });

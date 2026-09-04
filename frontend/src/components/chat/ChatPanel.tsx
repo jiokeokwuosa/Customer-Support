@@ -47,6 +47,7 @@ function ChatPanelReady({
             role: "assistant",
             content: response.message,
             triage: response.triage,
+            citations: response.citations,
           },
         ]);
       },
