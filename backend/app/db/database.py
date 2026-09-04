@@ -1,6 +1,5 @@
-from collections.abc import Generator
-
 import sqlite3
+from collections.abc import Generator
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -39,6 +38,18 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    from app.models import SessionRecord, TurnRecord  # noqa: F401
+    """Create tables and seed mock CRM rows when empty."""
+    from app.db.seed import seed_lookup_data
+    from app.models import (  # noqa: F401
+        AccountRecord,
+        OrderRecord,
+        SessionRecord,
+        TurnRecord,
+    )
 
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_lookup_data(db)
+    finally:
+        db.close()

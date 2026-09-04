@@ -1,0 +1,22 @@
+[
+  {
+    "identifier": "ORD-12345",
+    "lookup_type": "order",
+    "status": "shipped",
+    "summary": "Order ORD-12345 is shipped via UPS; estimated delivery in 2 business days.",
+    "metadata": {
+      "carrier": "UPS",
+      "tracking": "1Z999AA10123456784",
+      "amount": "49.99"
+    }
+  },
+  {
+    "identifier": "ORD-55501",
+    "lookup_type": "order",
+    "status": "processing",
+    "summary": "Order ORD-55501 is processing and has not shipped yet.",
+    "metadata": {
+      "amount": "19.00"
+    }
+  }
+]
