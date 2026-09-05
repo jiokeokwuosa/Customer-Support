@@ -77,18 +77,16 @@ def attach_lookup(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_triage_pipeline(
+def build_enrichment_pipeline(
     llm: BaseChatModel,
     *,
     knowledge_index: KnowledgeIndex | None = None,
 ) -> Runnable:
-    """Compose triage → optional RAG → lookup → draft → polish."""
+    """Compose triage → optional RAG → lookup (no draft/polish)."""
     triage_parallel = RunnableParallel(
         sentiment_urgency=build_sentiment_urgency_chain(llm),
         topic=build_topic_classifier_chain(llm),
     )
-    draft = build_draft_chain(llm)
-    polish = build_tone_polish_chain(llm)
 
     def run_triage(state: dict[str, Any]) -> dict[str, Any]:
         return {**state, **triage_parallel.invoke(state)}
@@ -107,17 +105,28 @@ def build_triage_pipeline(
             "knowledge_context": format_knowledge_context(docs),
         }
 
+    return (
+        RunnableLambda(run_triage)
+        | RunnableLambda(_attach_triage_info)
+        | RunnableLambda(attach_retrieval)
+        | RunnableLambda(attach_lookup)
+    )
+
+
+def build_triage_pipeline(
+    llm: BaseChatModel,
+    *,
+    knowledge_index: KnowledgeIndex | None = None,
+) -> Runnable:
+    """Compose triage → optional RAG → lookup → draft → polish."""
+    enrich = build_enrichment_pipeline(llm, knowledge_index=knowledge_index)
+    draft = build_draft_chain(llm)
+    polish = build_tone_polish_chain(llm)
+
     def attach_draft(state: dict[str, Any]) -> dict[str, Any]:
         return {**state, "topic_draft": draft.invoke(state)}
 
     def attach_polish(state: dict[str, Any]) -> dict[str, Any]:
         return {**state, "final_response": polish.invoke(state)}
 
-    return (
-        RunnableLambda(run_triage)
-        | RunnableLambda(_attach_triage_info)
-        | RunnableLambda(attach_retrieval)
-        | RunnableLambda(attach_lookup)
-        | RunnableLambda(attach_draft)
-        | RunnableLambda(attach_polish)
-    )
+    return enrich | RunnableLambda(attach_draft) | RunnableLambda(attach_polish)
