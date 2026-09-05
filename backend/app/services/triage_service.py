@@ -13,7 +13,13 @@ from app.llm.utils.history import turns_to_history
 from app.llm.utils.state import require_triage
 from app.logging import bind_log_context, clear_log_context, get_logger, log_step
 from app.retrieval.retriever import KnowledgeIndex
-from app.schemas.message import Citation, ErrorCode, TurnResponse, TurnStatus
+from app.schemas.message import (
+    Citation,
+    ErrorCode,
+    LookupResult,
+    TurnResponse,
+    TurnStatus,
+)
 from app.schemas.session import Turn
 from app.schemas.triage import TriageMetadata
 from app.services.session_service import SessionService
@@ -53,6 +59,7 @@ class TriageService:
                 triage = require_triage(result)
                 final_response = result["final_response"]
                 citations = _coerce_citations(result.get("citations", []))
+                lookup = _coerce_lookup(result.get("lookup"))
             except SessionNotFoundError:
                 raise
             except (KeyError, TypeError, ValueError):
@@ -77,6 +84,7 @@ class TriageService:
                 assistant_message=final_response,
                 triage=triage,
                 citations=citations,
+                lookup=lookup,
                 created_at=datetime.now(UTC),
             )
             self._session_service.append_turn(session_id, turn, session=session)
@@ -88,6 +96,7 @@ class TriageService:
                 message=final_response,
                 triage=triage,
                 citations=citations,
+                lookup=lookup,
             )
         finally:
             clear_log_context()
@@ -101,3 +110,9 @@ def _coerce_citations(raw: object) -> list[Citation]:
         if isinstance(item, Citation):
             citations.append(item)
     return citations
+
+
+def _coerce_lookup(raw: object) -> LookupResult | None:
+    if isinstance(raw, LookupResult):
+        return raw
+    return None

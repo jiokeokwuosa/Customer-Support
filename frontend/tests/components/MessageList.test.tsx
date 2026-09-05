@@ -2,13 +2,20 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { MessageList } from "@/components/chat/MessageList";
-import type { TriageMetadata } from "@/lib/api/types";
+import type { LookupResult, TriageMetadata } from "@/lib/api/types";
 
 const triage: TriageMetadata = {
   topic: "billing",
   sentiment: "frustrated",
   urgency: "high",
   rationale: "Duplicate charge complaint with urgent refund request",
+};
+
+const lookup: LookupResult = {
+  lookup_type: "order",
+  identifier: "ORD-12345",
+  found: true,
+  summary: "Order ORD-12345 is shipped via UPS.",
 };
 
 describe("MessageList", () => {
@@ -70,5 +77,43 @@ describe("MessageList", () => {
 
     expect(screen.getByLabelText("Citations")).toBeInTheDocument();
     expect(screen.getByText("Digital Product Refunds")).toBeInTheDocument();
+  });
+
+  it("shows lookup badge under assistant turns when lookup is present", () => {
+    render(
+      <MessageList
+        turns={[
+          {
+            id: "a1",
+            role: "assistant",
+            content: "Your order is on the way.",
+            triage,
+            lookup,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByLabelText("Lookup context")).toBeInTheDocument();
+    expect(screen.getByText("ORD-12345")).toBeInTheDocument();
+    expect(screen.getByText("Matched")).toBeInTheDocument();
+  });
+
+  it("does not show lookup badge when lookup is null", () => {
+    render(
+      <MessageList
+        turns={[
+          {
+            id: "a1",
+            role: "assistant",
+            content: "Happy to help.",
+            triage,
+            lookup: null,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByLabelText("Lookup context")).not.toBeInTheDocument();
   });
 });
