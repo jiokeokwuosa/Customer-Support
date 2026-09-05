@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# Next.js auto-generated agent guidance (recreated by `next dev`)
+/AGENTS.md
+/CLAUDE.md
+
 # production
 /build
 
