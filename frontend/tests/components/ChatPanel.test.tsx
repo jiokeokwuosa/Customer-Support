@@ -213,4 +213,69 @@ describe("ChatPanel", () => {
       fetchMock.mock.calls.some(([url]) => String(url).includes("/messages")),
     ).toBe(false);
   });
+
+  it("uses the sync messages endpoint when Full reply is selected", async () => {
+    const user = userEvent.setup();
+    let releaseSync: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      releaseSync = resolve;
+    });
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/api/v1/sessions") && init?.method === "POST") {
+        return mockSessionCreate();
+      }
+      if (
+        url.includes(`/api/v1/sessions/${sessionId}/messages`) &&
+        !url.includes("/stream") &&
+        init?.method === "POST"
+      ) {
+        await gate;
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            turn_id: "44444444-4444-4444-4444-444444444444",
+            session_id: sessionId,
+            status: "success",
+            message: "Full reply text",
+            triage: {
+              topic: "general",
+              sentiment: "neutral",
+              urgency: "low",
+              rationale: "ok",
+            },
+            citations: [],
+            lookup: null,
+            error_code: null,
+            next_actions: [],
+          }),
+        };
+      }
+      throw new Error(`Unhandled fetch: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderChatPanel();
+    await screen.findByPlaceholderText("Describe your support issue…");
+    await user.click(screen.getByRole("button", { name: "Full reply" }));
+    await user.type(
+      screen.getByPlaceholderText("Describe your support issue…"),
+      "Need a full reply",
+    );
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByText("Waiting for full reply…")).toBeInTheDocument();
+    releaseSync?.();
+    expect(await screen.findByText("Full reply text")).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/messages/stream")),
+    ).toBe(false);
+    expect(
+      fetchMock.mock.calls.some(
+        ([url]) =>
+          String(url).includes("/messages") && !String(url).includes("/stream"),
+      ),
+    ).toBe(true);
+  });
 });

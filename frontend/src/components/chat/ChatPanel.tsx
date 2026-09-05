@@ -10,19 +10,23 @@ import { Card } from "@/components/ui/Card";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { useMessageStream } from "@/hooks/useMessageStream";
 import { ApiError } from "@/lib/api/client";
+import type { Citation, LookupResult, TriageMetadata } from "@/lib/api/types";
 import { useSendMessage } from "@/lib/query/hooks/useSendMessage";
 import { useSession } from "@/lib/query/hooks/useSession";
-import type { Citation, LookupResult, TriageMetadata } from "@/lib/api/types";
+
+export type ResponseMode = "stream" | "full";
 
 type ChatPanelReadyProps = {
   sessionId: string;
   disabled?: boolean;
+  responseMode: ResponseMode;
   onBusyChange?: (busy: boolean) => void;
 };
 
 function ChatPanelReady({
   sessionId,
   disabled = false,
+  responseMode,
   onBusyChange,
 }: ChatPanelReadyProps) {
   const sendMessage = useSendMessage(sessionId);
@@ -39,39 +43,51 @@ function ChatPanelReady({
     return () => onBusyChange?.(false);
   }, [isBusy, onBusyChange]);
 
-  async function deliverMessage(
+  async function deliverFullMessage(
     message: string,
-    options: { reuseUserBubble?: boolean } = {},
-  ) {
-    const assistantTurnId = crypto.randomUUID();
-    setPendingMessage(message);
-    setTurns((current) => {
-      const next = [...current];
-      if (!options.reuseUserBubble) {
-        next.push({
-          id: crypto.randomUUID(),
-          role: "user",
-          content: message,
-        });
-      }
-      next.push({ id: assistantTurnId, role: "assistant", content: "" });
-      return next;
-    });
-
-    const applyAssistant = (fields: {
+    assistantTurnId: string,
+    applyAssistant: (fields: {
       content?: string;
       triage?: TriageMetadata;
       citations?: Citation[];
       lookup?: LookupResult | null;
       id?: string;
-    }) => {
+    }) => void,
+  ) {
+    try {
+      const response = await sendMessage.mutateAsync(message);
+      if (response.status === "error") {
+        throw new Error(response.message);
+      }
+      applyAssistant({
+        id: response.turn_id,
+        content: response.message,
+        triage: response.triage,
+        citations: response.citations,
+        lookup: response.lookup ?? null,
+      });
+      setDraft("");
+      setPendingMessage(null);
+      resetError();
+    } catch {
       setTurns((current) =>
-        current.map((turn) =>
-          turn.id === assistantTurnId ? { ...turn, ...fields } : turn,
-        ),
+        current.filter((turn) => turn.id !== assistantTurnId),
       );
-    };
+      setDraft(message);
+    }
+  }
 
+  async function deliverStreamMessage(
+    message: string,
+    assistantTurnId: string,
+    applyAssistant: (fields: {
+      content?: string;
+      triage?: TriageMetadata;
+      citations?: Citation[];
+      lookup?: LookupResult | null;
+      id?: string;
+    }) => void,
+  ) {
     let streamProgressed = false;
 
     try {
@@ -113,31 +129,55 @@ function ChatPanelReady({
       // Only fall back to sync when the stream never started delivering events
       // (avoids double-persisting a turn that may already be saved server-side).
       if (!streamProgressed) {
-        try {
-          const response = await sendMessage.mutateAsync(message);
-          if (response.status === "error") {
-            throw new Error(response.message);
-          }
-          applyAssistant({
-            id: response.turn_id,
-            content: response.message,
-            triage: response.triage,
-            citations: response.citations,
-            lookup: response.lookup ?? null,
-          });
-          setDraft("");
-          setPendingMessage(null);
-          resetError();
-          return;
-        } catch {
-          // Fall through to draft-preserving error path.
-        }
+        await deliverFullMessage(message, assistantTurnId, applyAssistant);
+        return;
       }
       setTurns((current) =>
         current.filter((turn) => turn.id !== assistantTurnId),
       );
       setDraft(message);
     }
+  }
+
+  async function deliverMessage(
+    message: string,
+    options: { reuseUserBubble?: boolean } = {},
+  ) {
+    const assistantTurnId = crypto.randomUUID();
+    setPendingMessage(message);
+    setTurns((current) => {
+      const next = [...current];
+      if (!options.reuseUserBubble) {
+        next.push({
+          id: crypto.randomUUID(),
+          role: "user",
+          content: message,
+        });
+      }
+      next.push({ id: assistantTurnId, role: "assistant", content: "" });
+      return next;
+    });
+
+    const applyAssistant = (fields: {
+      content?: string;
+      triage?: TriageMetadata;
+      citations?: Citation[];
+      lookup?: LookupResult | null;
+      id?: string;
+    }) => {
+      setTurns((current) =>
+        current.map((turn) =>
+          turn.id === assistantTurnId ? { ...turn, ...fields } : turn,
+        ),
+      );
+    };
+
+    if (responseMode === "full") {
+      await deliverFullMessage(message, assistantTurnId, applyAssistant);
+      return;
+    }
+
+    await deliverStreamMessage(message, assistantTurnId, applyAssistant);
   }
 
   function handleSend(message: string) {
@@ -178,7 +218,11 @@ function ChatPanelReady({
       </section>
 
       {isBusy ? (
-        <StatusMessage variant="info">Generating reply…</StatusMessage>
+        <StatusMessage variant="info">
+          {responseMode === "stream"
+            ? "Generating reply…"
+            : "Waiting for full reply…"}
+        </StatusMessage>
       ) : null}
 
       {errorMessage && !isBusy ? (
@@ -205,6 +249,45 @@ function ChatPanelReady({
   );
 }
 
+function ResponseModeToggle({
+  value,
+  onChange,
+  disabled = false,
+}: {
+  value: ResponseMode;
+  onChange: (mode: ResponseMode) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      className="inline-flex rounded-button border border-border p-0.5"
+      role="group"
+      aria-label="Reply mode"
+    >
+      <Button
+        type="button"
+        size="sm"
+        variant={value === "stream" ? "primary" : "ghost"}
+        disabled={disabled}
+        aria-pressed={value === "stream"}
+        onClick={() => onChange("stream")}
+      >
+        Stream
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant={value === "full" ? "primary" : "ghost"}
+        disabled={disabled}
+        aria-pressed={value === "full"}
+        onClick={() => onChange("full")}
+      >
+        Full reply
+      </Button>
+    </div>
+  );
+}
+
 export function ChatPanel() {
   const {
     sessionId,
@@ -215,6 +298,7 @@ export function ChatPanel() {
     resetConversation,
   } = useSession();
   const [isSending, setIsSending] = useState(false);
+  const [responseMode, setResponseMode] = useState<ResponseMode>("stream");
 
   const resetErrorMessage =
     resetError instanceof ApiError
@@ -237,18 +321,24 @@ export function ChatPanel() {
             sentiment, urgency, and rationale.
           </p>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className="shrink-0"
-          disabled={!sessionId || isLoading || isResetting || isSending}
-          onClick={() => {
-            void handleNewConversation();
-          }}
-        >
-          {isResetting ? "Starting…" : "New conversation"}
-        </Button>
+        <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center">
+          <ResponseModeToggle
+            value={responseMode}
+            onChange={setResponseMode}
+            disabled={isSending || isResetting}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={!sessionId || isLoading || isResetting || isSending}
+            onClick={() => {
+              void handleNewConversation();
+            }}
+          >
+            {isResetting ? "Starting…" : "New conversation"}
+          </Button>
+        </div>
       </header>
 
       {isLoading ? (
@@ -271,6 +361,7 @@ export function ChatPanel() {
         <ChatPanelReady
           key={sessionId}
           sessionId={sessionId}
+          responseMode={responseMode}
           disabled={isResetting}
           onBusyChange={setIsSending}
         />
