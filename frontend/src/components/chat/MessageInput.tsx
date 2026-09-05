@@ -26,6 +26,8 @@ export function MessageInput({
 
   const isControlled = value !== undefined;
   const message = isControlled ? value : internalMessage;
+  // Hide stale errors once the draft has content (e.g. after sample chip prefill).
+  const visibleValidationError = message.trim() ? null : validationError;
 
   function setMessage(next: string) {
     if (isControlled) {
@@ -64,17 +66,19 @@ export function MessageInput({
           }}
           placeholder="Describe your support issue…"
           disabled={disabled}
-          aria-invalid={validationError ? true : undefined}
-          aria-describedby={validationError ? "message-input-error" : undefined}
+          aria-invalid={visibleValidationError ? true : undefined}
+          aria-describedby={
+            visibleValidationError ? "message-input-error" : undefined
+          }
           className="flex-1 rounded-button border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
         <Button type="submit" disabled={disabled}>
           Send
         </Button>
       </div>
-      {validationError ? (
+      {visibleValidationError ? (
         <p id="message-input-error" className="text-xs text-danger" role="alert">
-          {validationError}
+          {visibleValidationError}
         </p>
       ) : null}
     </form>

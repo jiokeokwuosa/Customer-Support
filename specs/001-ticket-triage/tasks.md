@@ -234,15 +234,15 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Tests for User Story 7
 
-- [ ] T088 [P] [US7] Integration test sample prompts endpoint in `backend/tests/integration/test_sample_prompts.py`
-- [ ] T089 [P] [US7] Component test SamplePrompts chip click in `frontend/tests/components/SamplePrompts.test.tsx`
+- [x] T088 [P] [US7] Integration test sample prompts endpoint in `backend/tests/integration/test_sample_prompts.py`
+- [x] T089 [P] [US7] Component test SamplePrompts chip click in `frontend/tests/components/SamplePrompts.test.tsx`
 
 ### Implementation for User Story 7
 
-- [ ] T090 [US7] Define sample prompt data in `backend/app/data/sample_prompts.py`
-- [ ] T091 [US7] Implement `GET /api/v1/sample-prompts` in `backend/app/api/v1/prompts.py` and register in `backend/app/api/v1/router.py`
-- [ ] T092 [US7] Implement `SamplePrompts` component in `frontend/src/components/chat/SamplePrompts.tsx`
-- [ ] T093 [US7] Integrate sample prompts into `frontend/src/components/chat/ChatPanel.tsx` with pre-fill handler
+- [x] T090 [US7] Define sample prompt data in `backend/app/data/sample_prompts.py`
+- [x] T091 [US7] Implement `GET /api/v1/sample-prompts` in `backend/app/api/v1/prompts.py` and register in `backend/app/api/v1/router.py`
+- [x] T092 [US7] Implement `SamplePrompts` component in `frontend/src/components/chat/SamplePrompts.tsx`
+- [x] T093 [US7] Integrate sample prompts into `frontend/src/components/chat/ChatPanel.tsx` with pre-fill handler
 
 **Checkpoint**: All seven user stories independently functional
 

@@ -10,6 +10,7 @@ from app.schemas.message import (
     TurnResponse,
     TurnStatus,
 )
+from app.schemas.prompts import SamplePrompt, SamplePromptsResponse
 from app.schemas.session import CreateSessionResponse, Session, Turn, TurnRole
 from app.schemas.triage import (
     SentimentLabel,
@@ -25,6 +26,8 @@ __all__ = [
     "ErrorResponse",
     "LookupResult",
     "LookupType",
+    "SamplePrompt",
+    "SamplePromptsResponse",
     "SendMessageRequest",
     "SentimentLabel",
     "Session",

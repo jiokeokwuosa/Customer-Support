@@ -5,12 +5,19 @@ import { useEffect, useState } from "react";
 import { MessageInput } from "@/components/chat/MessageInput";
 import type { ChatTurn } from "@/components/chat/MessageList";
 import { MessageList } from "@/components/chat/MessageList";
+import { SamplePrompts } from "@/components/chat/SamplePrompts";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { useMessageStream } from "@/hooks/useMessageStream";
 import { ApiError } from "@/lib/api/client";
-import type { Citation, LookupResult, TriageMetadata } from "@/lib/api/types";
+import type {
+  Citation,
+  LookupResult,
+  SamplePrompt,
+  TriageMetadata,
+} from "@/lib/api/types";
+import { useSamplePrompts } from "@/lib/query/hooks/useSamplePrompts";
 import { useSendMessage } from "@/lib/query/hooks/useSendMessage";
 import { useSession } from "@/lib/query/hooks/useSession";
 
@@ -32,6 +39,7 @@ function ChatPanelReady({
   const sendMessage = useSendMessage(sessionId);
   const { streamMessage, isStreaming, error: streamError, resetError } =
     useMessageStream(sessionId);
+  const samplePrompts = useSamplePrompts();
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [draft, setDraft] = useState("");
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
@@ -197,6 +205,13 @@ function ChatPanelReady({
     void deliverMessage(message, { reuseUserBubble: true });
   }
 
+  function handleSampleSelect(prompt: SamplePrompt) {
+    if (isBusy || disabled) {
+      return;
+    }
+    setDraft(prompt.message);
+  }
+
   const errorMessage =
     streamError instanceof ApiError
       ? streamError.body.message
@@ -236,7 +251,14 @@ function ChatPanelReady({
         </StatusMessage>
       ) : null}
 
-      <section aria-label="Compose message" className="shrink-0">
+      <section aria-label="Compose message" className="shrink-0 space-y-3">
+        {samplePrompts.data?.prompts?.length ? (
+          <SamplePrompts
+            prompts={samplePrompts.data.prompts}
+            onSelect={handleSampleSelect}
+            disabled={disabled || isBusy}
+          />
+        ) : null}
         <MessageInput
           value={draft}
           onChange={setDraft}
