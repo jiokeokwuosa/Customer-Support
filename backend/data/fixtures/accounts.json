@@ -1,0 +1,22 @@
+[
+  {
+    "identifier": "ACC-99",
+    "lookup_type": "account",
+    "status": "active",
+    "summary": "Account ACC-99 is active on the Pro plan with billing up to date.",
+    "metadata": {
+      "plan": "Pro",
+      "email": "customer@example.com"
+    }
+  },
+  {
+    "identifier": "ACC-42",
+    "lookup_type": "account",
+    "status": "past_due",
+    "summary": "Account ACC-42 is past due; latest invoice is unpaid.",
+    "metadata": {
+      "plan": "Basic",
+      "email": "past.due@example.com"
+    }
+  }
+]
