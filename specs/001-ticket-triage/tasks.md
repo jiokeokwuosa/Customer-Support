@@ -252,14 +252,14 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 **Purpose**: Quality, docs, and end-to-end validation
 
-- [ ] T094 [P] Add contract validation test against `specs/001-ticket-triage/contracts/openapi.yaml` in `backend/tests/contract/test_openapi.py`
-- [ ] T095 [P] Add backend README run instructions in `backend/README.md`
-- [ ] T096 [P] Add frontend README run instructions in `frontend/README.md`
-- [ ] T097 Add root README with monorepo quickstart linking to `specs/001-ticket-triage/quickstart.md`
-- [ ] T098 Review structured logging coverage for all agent turns in `backend/app/services/triage_service.py`
-- [ ] T099 [P] Performance pass: verify async routes, query staleTime defaults in `frontend/src/lib/query/keys.ts`, chain timeouts in `backend/app/config.py`
-- [ ] T100 Run full quickstart validation scenarios VS-1 through VS-8 from `specs/001-ticket-triage/quickstart.md`
-- [ ] T101 Verify constitution compliance checklist (no LangGraph, typed APIs, TanStack Query only, post-task explanations during implement)
+- [x] T094 [P] Add contract validation test against `specs/001-ticket-triage/contracts/openapi.yaml` in `backend/tests/contract/test_openapi.py`
+- [x] T095 [P] Add backend README run instructions in `backend/README.md`
+- [x] T096 [P] Add frontend README run instructions in `frontend/README.md`
+- [x] T097 Add root README with monorepo quickstart linking to `specs/001-ticket-triage/quickstart.md`
+- [x] T098 Review structured logging coverage for all agent turns in `backend/app/services/triage_service.py`
+- [x] T099 [P] Performance pass: verify async routes, query staleTime defaults in `frontend/src/lib/query/keys.ts`, chain timeouts in `backend/app/config.py`
+- [x] T100 Run full quickstart validation scenarios VS-1 through VS-8 from `specs/001-ticket-triage/quickstart.md`
+- [x] T101 Verify constitution compliance checklist (no LangGraph, typed APIs, TanStack Query only, post-task explanations during implement)
 
 ---
 

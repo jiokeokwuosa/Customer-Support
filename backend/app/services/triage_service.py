@@ -16,7 +16,13 @@ from app.llm.chains.pipeline import build_enrichment_pipeline, build_triage_pipe
 from app.llm.chains.refinement.tone_polish import build_tone_polish_chain
 from app.llm.utils.history import turns_to_history
 from app.llm.utils.state import require_triage
-from app.logging import bind_log_context, clear_log_context, get_logger, log_step
+from app.logging import (
+    bind_log_context,
+    clear_log_context,
+    get_logger,
+    log_event,
+    log_step,
+)
 from app.retrieval.retriever import KnowledgeIndex
 from app.schemas.message import (
     Citation,
@@ -80,6 +86,13 @@ class TriageService:
                 raise
             except Exception:
                 self._logger.exception("triage_pipeline_failed")
+                log_event(
+                    self._logger,
+                    "turn_completed",
+                    status=TurnStatus.ERROR.value,
+                    error_code=ErrorCode.LLM_ERROR.value,
+                    mode="sync",
+                )
                 return TurnResponse(
                     turn_id=turn_id,
                     session_id=session_id,
@@ -102,6 +115,16 @@ class TriageService:
                 created_at=datetime.now(UTC),
             )
             self._session_service.append_turn(session_id, turn, session=session)
+
+            log_event(
+                self._logger,
+                "turn_completed",
+                status=TurnStatus.SUCCESS.value,
+                topic=triage.topic.value,
+                citation_count=len(citations),
+                lookup_found=lookup.found if lookup is not None else None,
+                mode="sync",
+            )
 
             return TurnResponse(
                 turn_id=turn_id,
@@ -145,6 +168,13 @@ class TriageService:
                     raise
                 except Exception:
                     self._logger.exception("triage_pipeline_stream_failed")
+                    log_event(
+                        self._logger,
+                        "turn_completed",
+                        status=TurnStatus.ERROR.value,
+                        error_code=ErrorCode.LLM_ERROR.value,
+                        mode="stream",
+                    )
                     yield (
                         "error",
                         ErrorResponse(
@@ -200,6 +230,16 @@ class TriageService:
             created_at=datetime.now(UTC),
         )
         self._session_service.append_turn(session_id, turn, session=session)
+
+        log_event(
+            self._logger,
+            "turn_completed",
+            status=TurnStatus.SUCCESS.value,
+            topic=triage.topic.value,
+            citation_count=len(citations),
+            lookup_found=lookup.found if lookup is not None else None,
+            mode="stream",
+        )
 
         yield (
             "done",
