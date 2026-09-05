@@ -187,15 +187,15 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 - [x] T071 [P] [US5] Unit test ID regex detector in `backend/tests/unit/tools/test_id_detector.py`
 - [x] T072 [P] [US5] Unit test lookup tools against fixtures in `backend/tests/unit/tools/test_lookup.py`
-- [ ] T073 [P] [US5] Integration test lookup enrichment in `backend/tests/integration/test_lookup_enrichment.py`
+- [x] T073 [P] [US5] Integration test lookup enrichment in `backend/tests/integration/test_lookup_enrichment.py`
 
 ### Implementation for User Story 5
 
 - [x] T074 [P] [US5] Add mock order/account fixtures in `backend/data/fixtures/orders.json` and `backend/data/fixtures/accounts.json` (seeded into SQLite on startup)
 - [x] T075 [US5] Implement `@tool` lookup functions in `backend/app/tools/lookup.py`
 - [x] T076 [US5] Implement ID detection helper in `backend/app/tools/id_detector.py`
-- [ ] T077 [US5] Integrate tool lookup into pipeline enrich step in `backend/app/llm/chains/pipeline.py`
-- [ ] T078 [US5] Add lookup indicator UI in `frontend/src/components/chat/LookupBadge.tsx` and integrate in `frontend/src/components/chat/MessageList.tsx`
+- [x] T077 [US5] Integrate tool lookup into pipeline enrich step in `backend/app/llm/chains/pipeline.py`
+- [x] T078 [US5] Add lookup indicator UI in `frontend/src/components/chat/LookupBadge.tsx` and integrate in `frontend/src/components/chat/MessageList.tsx`
 
 **Checkpoint**: Order/account IDs enrich responses with mock data
 

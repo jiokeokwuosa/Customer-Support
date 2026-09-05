@@ -1,4 +1,4 @@
-"""Full triage pipeline: parallel triage → optional RAG → draft → tone polish."""
+"""Full triage pipeline: parallel triage → optional RAG → lookup → draft → polish."""
 
 from __future__ import annotations
 
@@ -19,7 +19,10 @@ from app.retrieval.retriever import (
     format_knowledge_context,
     needs_retrieval,
 )
+from app.schemas.message import LookupResult, LookupType
 from app.schemas.triage import TriageMetadata
+from app.tools.id_detector import detect_ids
+from app.tools.lookup import lookup_account_record, lookup_order_record
 
 
 def _merge_triage_info(parallel_output: dict[str, Any]) -> TriageMetadata:
@@ -47,12 +50,39 @@ def _attach_triage_info(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _format_lookup_context(result: LookupResult) -> str:
+    lines = [result.summary]
+    if result.details:
+        details = ", ".join(f"{key}={value}" for key, value in result.details.items())
+        lines.append(f"Details: {details}")
+    return "\n".join(lines)
+
+
+def attach_lookup(state: dict[str, Any]) -> dict[str, Any]:
+    """Detect IDs and run the first matching mock CRM lookup."""
+    detected = detect_ids(state["user_message"])
+    if not detected:
+        return {**state, "lookup": None, "lookup_context": ""}
+
+    first = detected[0]
+    if first.lookup_type is LookupType.ORDER:
+        result = lookup_order_record(first.identifier)
+    else:
+        result = lookup_account_record(first.identifier)
+
+    return {
+        **state,
+        "lookup": result,
+        "lookup_context": _format_lookup_context(result),
+    }
+
+
 def build_triage_pipeline(
     llm: BaseChatModel,
     *,
     knowledge_index: KnowledgeIndex | None = None,
 ) -> Runnable:
-    """Compose RunnableParallel → merge triage → optional RAG → draft → polish."""
+    """Compose triage → optional RAG → lookup → draft → polish."""
     triage_parallel = RunnableParallel(
         sentiment_urgency=build_sentiment_urgency_chain(llm),
         topic=build_topic_classifier_chain(llm),
@@ -87,6 +117,7 @@ def build_triage_pipeline(
         RunnableLambda(run_triage)
         | RunnableLambda(_attach_triage_info)
         | RunnableLambda(attach_retrieval)
+        | RunnableLambda(attach_lookup)
         | RunnableLambda(attach_draft)
         | RunnableLambda(attach_polish)
     )

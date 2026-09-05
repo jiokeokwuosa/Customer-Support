@@ -48,6 +48,7 @@ function ChatPanelReady({
             content: response.message,
             triage: response.triage,
             citations: response.citations,
+            lookup: response.lookup ?? null,
           },
         ]);
       },
