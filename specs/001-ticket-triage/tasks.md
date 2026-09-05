@@ -209,18 +209,18 @@ description: "Task list for Customer Support Ticket Triage & Response Router"
 
 ### Tests for User Story 6
 
-- [ ] T079 [P] [US6] Integration test SSE stream events in `backend/tests/integration/test_message_stream.py` (mocked LLM stream)
-- [ ] T080 [P] [US6] Component test loading/error/retry states in `frontend/tests/components/ChatPanel.test.tsx`
+- [x] T079 [P] [US6] Integration test SSE stream events in `backend/tests/integration/test_message_stream.py` (mocked LLM stream)
+- [x] T080 [P] [US6] Component test loading/error/retry states in `frontend/tests/components/ChatPanel.test.tsx`
 
 ### Implementation for User Story 6
 
-- [ ] T081 [US6] Implement SSE stream endpoint in `backend/app/api/v1/messages.py` (POST `/messages/stream`)
-- [ ] T082 [US6] Map LangChain `astream_events` to SSE events (`triage`, `token`, `citations`, `lookup`, `done`, `error`) in `backend/app/services/triage_service.py`
-- [ ] T083 [US6] Implement `useMessageStream` hook in `frontend/src/hooks/useMessageStream.ts`
-- [ ] T084 [US6] Update `frontend/src/components/chat/ChatPanel.tsx` to prefer streaming with sync fallback
-- [ ] T085 [US6] Add inline validation for empty/whitespace messages in `frontend/src/components/chat/MessageInput.tsx`
-- [ ] T086 [US6] Add duplicate-submit guard and error retry UX in `frontend/src/components/chat/MessageInput.tsx` and `frontend/src/components/ui/StatusMessage.tsx`
-- [ ] T087 [US6] Align backend validation errors (422) with unified error contract in `backend/app/api/v1/messages.py`
+- [x] T081 [US6] Implement SSE stream endpoint in `backend/app/api/v1/messages.py` (POST `/messages/stream`)
+- [x] T082 [US6] Map LangChain `astream_events` to SSE events (`triage`, `token`, `citations`, `lookup`, `done`, `error`) in `backend/app/services/triage_service.py`
+- [x] T083 [US6] Implement `useMessageStream` hook in `frontend/src/hooks/useMessageStream.ts`
+- [x] T084 [US6] Update `frontend/src/components/chat/ChatPanel.tsx` to prefer streaming with sync fallback
+- [x] T085 [US6] Add inline validation for empty/whitespace messages in `frontend/src/components/chat/MessageInput.tsx`
+- [x] T086 [US6] Add duplicate-submit guard and error retry UX in `frontend/src/components/chat/MessageInput.tsx` and `frontend/src/components/ui/StatusMessage.tsx`
+- [x] T087 [US6] Align backend validation errors (422) with unified error contract in `backend/app/api/v1/messages.py`
 
 **Checkpoint**: Professional loading, streaming, and error recovery UX
 

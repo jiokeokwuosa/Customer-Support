@@ -1,10 +1,15 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
+
+import { Button } from "@/components/ui/Button";
 
 export type StatusVariant = "info" | "success" | "warning" | "error";
 
 export type StatusMessageProps = HTMLAttributes<HTMLDivElement> & {
   variant?: StatusVariant;
   title?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  children?: ReactNode;
 };
 
 const variantClasses: Record<StatusVariant, string> = {
@@ -17,6 +22,8 @@ const variantClasses: Record<StatusVariant, string> = {
 export function StatusMessage({
   variant = "info",
   title,
+  actionLabel,
+  onAction,
   className = "",
   children,
   ...props
@@ -33,8 +40,17 @@ export function StatusMessage({
         .join(" ")}
       {...props}
     >
-      {title ? <p className="mb-1 font-medium">{title}</p> : null}
-      {children}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {title ? <p className="mb-1 font-medium">{title}</p> : null}
+          {children}
+        </div>
+        {actionLabel && onAction ? (
+          <Button type="button" variant="secondary" size="sm" onClick={onAction}>
+            {actionLabel}
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
