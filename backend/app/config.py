@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     chain_target_seconds: float = Field(default=30.0, gt=0)
     # Relative to the backend working directory unless absolute.
     database_path: str = Field(default="data/sessions.db")
+    # Protect LLM spend: max message requests per client IP per window.
+    rate_limit_enabled: bool = True
+    rate_limit_requests: int = Field(default=20, ge=1)
+    rate_limit_window_seconds: float = Field(default=60.0, gt=0)
 
     @computed_field  # type: ignore[prop-decorator]
     @property

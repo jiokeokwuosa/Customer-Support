@@ -35,6 +35,9 @@ dist/
 .coverage
 htmlcov/
 
+# Local LinkedIn / walkthrough demo assets (not part of the product)
+demo/
+
 # Chroma / local vector cache
 backend/.chroma/
 .chroma/

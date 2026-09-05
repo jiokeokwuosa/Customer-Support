@@ -14,6 +14,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.health import router as health_router
 from app.api.v1.router import router as v1_router
@@ -22,6 +23,7 @@ from app.db.database import init_db
 from app.db.database import settings as db_settings
 from app.exceptions import SessionNotFoundError
 from app.logging import get_logger
+from app.rate_limit import configure_rate_limits, limiter
 from app.retrieval.index import init_knowledge_index, set_knowledge_index
 from app.schemas.message import ErrorCode, ErrorResponse
 
@@ -58,6 +60,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+    application.state.settings = resolved
+    application.state.limiter = limiter
+    configure_rate_limits(resolved)
 
     @application.exception_handler(RequestValidationError)
     async def validation_error_handler(
@@ -84,6 +89,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 error_code=ErrorCode.SESSION_NOT_FOUND,
             ).model_dump(mode="json"),
         )
+
+    @application.exception_handler(RateLimitExceeded)
+    async def rate_limit_handler(
+        request: Request,
+        _exc: RateLimitExceeded,
+    ) -> JSONResponse:
+        response = JSONResponse(
+            status_code=429,
+            content=ErrorResponse(
+                message=(
+                    "Too many messages sent. Please wait a moment before trying again."
+                ),
+                error_code=ErrorCode.RATE_LIMITED,
+                next_actions=["retry"],
+            ).model_dump(mode="json"),
+        )
+        view_rate_limit = getattr(request.state, "view_rate_limit", None)
+        if view_rate_limit is not None:
+            response = request.app.state.limiter._inject_headers(
+                response,
+                view_rate_limit,
+            )
+        if "Retry-After" not in response.headers:
+            response.headers["Retry-After"] = str(
+                max(int(resolved.rate_limit_window_seconds), 1)
+            )
+        return response
 
     if settings is not None:
         application.dependency_overrides[get_settings] = lambda: resolved

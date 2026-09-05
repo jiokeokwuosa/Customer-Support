@@ -16,8 +16,16 @@ from app.config import get_settings
 get_settings.cache_clear()
 
 from app.db.database import Base, SessionLocal, engine, init_db
+from app.rate_limit import limiter
 from app.repositories.session_repository import SessionRepository
 from app.services.session_service import SessionService
+
+
+@pytest.fixture(autouse=True)
+def reset_message_rate_limiter() -> Iterator[None]:
+    limiter.reset()
+    yield
+    limiter.reset()
 
 
 @pytest.fixture

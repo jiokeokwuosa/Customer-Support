@@ -133,10 +133,12 @@ function ChatPanelReady({
       setPendingMessage(null);
       resetError();
       sendMessage.reset();
-    } catch {
-      // Only fall back to sync when the stream never started delivering events
-      // (avoids double-persisting a turn that may already be saved server-side).
-      if (!streamProgressed) {
+    } catch (error) {
+      // Fall back to sync only for transport/server failures before any SSE
+      // events. Client errors (e.g. 429 rate limit) must not burn another LLM call.
+      const isClientError =
+        error instanceof ApiError && error.status >= 400 && error.status < 500;
+      if (!streamProgressed && !isClientError) {
         await deliverFullMessage(message, assistantTurnId, applyAssistant);
         return;
       }
@@ -212,6 +214,12 @@ function ChatPanelReady({
     setDraft(prompt.message);
   }
 
+  const rateLimited =
+    (streamError instanceof ApiError &&
+      streamError.body.error_code === "RATE_LIMITED") ||
+    (sendMessage.error instanceof ApiError &&
+      sendMessage.error.body.error_code === "RATE_LIMITED");
+
   const errorMessage =
     streamError instanceof ApiError
       ? streamError.body.message
@@ -243,7 +251,7 @@ function ChatPanelReady({
       {errorMessage && !isBusy ? (
         <StatusMessage
           variant="error"
-          title="Message failed"
+          title={rateLimited ? "Slow down" : "Message failed"}
           actionLabel="Retry"
           onAction={handleRetry}
         >

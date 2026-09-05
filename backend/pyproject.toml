@@ -17,6 +17,7 @@ dependencies = [
     "structlog>=24.4.0",
     "httpx>=0.27.2",
     "sqlalchemy>=2.0.36",
+    "slowapi>=0.1.10",
 ]
 
 [project.optional-dependencies]
@@ -87,6 +88,8 @@ follow_imports = "skip"
 module = [
     "chromadb.*",
     "sqlalchemy.*",
+    "slowapi.*",
+    "limits.*",
 ]
 ignore_missing_imports = true
 

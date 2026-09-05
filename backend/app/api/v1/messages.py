@@ -7,18 +7,21 @@ from collections.abc import Iterator
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from app.api.deps import TriageServiceDep
+from app.rate_limit import limit_llm_messages
 from app.schemas.message import SendMessageRequest, TurnResponse
 
 router = APIRouter(prefix="/sessions", tags=["messages"])
 
 
 @router.post("/{session_id}/messages", response_model=TurnResponse)
+@limit_llm_messages
 def send_message(
+    request: Request,
     session_id: UUID,
     body: SendMessageRequest,
     triage_service: TriageServiceDep,
@@ -27,7 +30,9 @@ def send_message(
 
 
 @router.post("/{session_id}/messages/stream")
+@limit_llm_messages
 def send_message_stream(
+    request: Request,
     session_id: UUID,
     body: SendMessageRequest,
     triage_service: TriageServiceDep,

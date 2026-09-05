@@ -2,6 +2,7 @@
 
 import { CitationList } from "@/components/chat/CitationList";
 import { LookupBadge } from "@/components/chat/LookupBadge";
+import { MarkdownContent } from "@/components/chat/MarkdownContent";
 import { TriageBadge } from "@/components/chat/TriageBadge";
 import type { Citation, LookupResult, TurnResponse } from "@/lib/api/types";
 
@@ -39,7 +40,11 @@ export function MessageList({ turns }: MessageListProps) {
               : "mr-auto w-full max-w-[92%] border border-border bg-surface-elevated text-ink",
           ].join(" ")}
         >
-          <p>{turn.content}</p>
+          {turn.role === "assistant" ? (
+            <MarkdownContent content={turn.content} />
+          ) : (
+            <p className="whitespace-pre-wrap">{turn.content}</p>
+          )}
           {turn.role === "assistant" && turn.triage ? (
             <TriageBadge triage={turn.triage} />
           ) : null}
