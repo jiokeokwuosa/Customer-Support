@@ -133,10 +133,12 @@ function ChatPanelReady({
       setPendingMessage(null);
       resetError();
       sendMessage.reset();
-    } catch {
-      // Only fall back to sync when the stream never started delivering events
-      // (avoids double-persisting a turn that may already be saved server-side).
-      if (!streamProgressed) {
+    } catch (error) {
+      // Fall back to sync only for transport/server failures before any SSE
+      // events. Client errors (e.g. 429 rate limit) must not burn another LLM call.
+      const isClientError =
+        error instanceof ApiError && error.status >= 400 && error.status < 500;
+      if (!streamProgressed && !isClientError) {
         await deliverFullMessage(message, assistantTurnId, applyAssistant);
         return;
       }
