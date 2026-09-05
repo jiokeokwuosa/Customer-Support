@@ -87,6 +87,7 @@ class ErrorCode(StrEnum):
     LLM_ERROR = "LLM_ERROR"
     LLM_TIMEOUT = "LLM_TIMEOUT"
     SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
+    RATE_LIMITED = "RATE_LIMITED"
 
 
 class ErrorResponse(BaseModel):

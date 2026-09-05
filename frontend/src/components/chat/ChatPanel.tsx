@@ -212,6 +212,12 @@ function ChatPanelReady({
     setDraft(prompt.message);
   }
 
+  const rateLimited =
+    (streamError instanceof ApiError &&
+      streamError.body.error_code === "RATE_LIMITED") ||
+    (sendMessage.error instanceof ApiError &&
+      sendMessage.error.body.error_code === "RATE_LIMITED");
+
   const errorMessage =
     streamError instanceof ApiError
       ? streamError.body.message
@@ -243,7 +249,7 @@ function ChatPanelReady({
       {errorMessage && !isBusy ? (
         <StatusMessage
           variant="error"
-          title="Message failed"
+          title={rateLimited ? "Slow down" : "Message failed"}
           actionLabel="Retry"
           onAction={handleRetry}
         >

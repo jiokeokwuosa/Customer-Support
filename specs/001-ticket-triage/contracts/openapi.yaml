@@ -136,6 +136,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Message rate limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds until another message may be sent
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "504":
           description: Processing timeout
           content:
@@ -179,6 +190,17 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Message rate limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds until another message may be sent
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -365,6 +387,7 @@ components:
             - LLM_ERROR
             - LLM_TIMEOUT
             - SERVICE_UNAVAILABLE
+            - RATE_LIMITED
         next_actions:
           type: array
           items:

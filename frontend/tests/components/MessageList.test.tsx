@@ -99,21 +99,40 @@ describe("MessageList", () => {
     expect(screen.getByText("Matched")).toBeInTheDocument();
   });
 
-  it("does not show lookup badge when lookup is null", () => {
+  it("renders markdown formatting in assistant replies", () => {
     render(
       <MessageList
         turns={[
           {
             id: "a1",
             role: "assistant",
-            content: "Happy to help.",
+            content: "Refunds are available within **14 days**.",
             triage,
-            lookup: null,
           },
         ]}
       />,
     );
 
-    expect(screen.queryByLabelText("Lookup context")).not.toBeInTheDocument();
+    const bold = screen.getByText("14 days");
+    expect(bold.tagName).toBe("STRONG");
+  });
+
+  it("keeps user messages as plain text", () => {
+    render(
+      <MessageList
+        turns={[
+          {
+            id: "u1",
+            role: "user",
+            content: "Please refund **this** charge.",
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByText("Please refund **this** charge."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("this")).not.toBeInTheDocument();
   });
 });

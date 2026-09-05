@@ -53,7 +53,8 @@ export type ErrorCode =
   | "SESSION_NOT_FOUND"
   | "LLM_ERROR"
   | "LLM_TIMEOUT"
-  | "SERVICE_UNAVAILABLE";
+  | "SERVICE_UNAVAILABLE"
+  | "RATE_LIMITED";
 
 export interface ErrorResponse {
   status: "error";

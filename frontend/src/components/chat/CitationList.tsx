@@ -1,3 +1,4 @@
+import { MarkdownContent } from "@/components/chat/MarkdownContent";
 import type { Citation } from "@/lib/api/types";
 
 type CitationListProps = {
@@ -22,7 +23,10 @@ export function CitationList({ citations }: CitationListProps) {
             className="rounded-button border border-border bg-surface px-3 py-2 text-xs"
           >
             <p className="font-medium text-ink">{citation.title}</p>
-            <p className="mt-1 text-ink-muted">{citation.excerpt}</p>
+            <MarkdownContent
+              className="mt-1 text-ink-muted"
+              content={citation.excerpt}
+            />
           </li>
         ))}
       </ul>
